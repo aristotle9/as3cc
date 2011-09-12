@@ -73,6 +73,9 @@
             <pattern><![CDATA[%lex]]></pattern>
             <action><![CDATA[this.begin("DEC"); return 'lex_begin';]]></action>
         </token>
+        <token>
+            <pattern><![CDATA[\s+]]></pattern>
+        </token>
         <token states="DEC">
             <pattern><![CDATA[%initial]]></pattern>
             <action><![CDATA[this.begin("DEC_COND"); return 'dec_initial';]]></action>
@@ -129,6 +132,10 @@
             <pattern><![CDATA[>]]></pattern>
             <action><![CDATA[this.begin('RULE_PATTERN'); return '>';]]></action>
         </token>
+        <token states="RULE">
+            <pattern><![CDATA[<<EOF>>]]></pattern>
+            <action><![CDATA[this.begin('RULE_SPACE'); return 'pattern';]]></action>
+        </token>
         <token states="RULE RULE_PATTERN">
             <pattern><![CDATA['([^'\\]|\\.)*'|"([^"\\]|\\.)*"]]></pattern>
             <action><![CDATA[this.begin('RULE_SPACE'); $$ = $$.substr(1, $$.length - 2); $$ = $$.replace(/\\(.)/g,"$1"); $$ = $$.replace(/[\\\*\|\?\+\[\]\(\)\^\.\-\{\}]/g,"\\$&"); return 'pattern';]]></action>
@@ -167,10 +174,159 @@
         </token>
     </tokens>
 </lexer>
-<parser start="LexDecs">
-    <rule head="LexDecs">
+<parser start="Config">
+    <operators>
+        <operator assoc="left"><![CDATA[{ }]]></operator>
+    </operators>
+    <rule head="Config">
         <rhs>
-            <pattern>lex_begin Decs rule_start Rules lex_end</pattern>
+            <pattern>Decs grammar_rule_begin GrammarRules</pattern>
+            <action><![CDATA[$$ = {decs:$1,rules:$3};]]></action>
+        </rhs>
+    </rule>
+    <rule head="Decs">
+        <rhs>
+            <pattern>Decs LexDec</pattern>
+            <action><![CDATA[$$ = $1; $$.lex.push($2);]]></action>
+        </rhs>
+        <rhs>
+            <pattern>Decs PrecedenceDec</pattern>
+            <action><![CDATA[$$ = $1; $$.operator.push($2);]]></action>
+        </rhs>
+        <rhs>
+            <pattern>Decs StartDec</pattern>
+            <action><![CDATA[$$ = $1; $$.start = $2;]]></action>
+        </rhs>
+        <rhs>
+            <pattern></pattern>
+            <action><![CDATA[$$ = {lex:[],start:null,operator:[]};]]></action>
+        </rhs>
+    </rule>
+    <rule head="StartDec">
+        <rhs>
+            <pattern>grammar_dec_start grammar_id</pattern>
+            <action><![CDATA[$$ = $2;]]></action>
+        </rhs>
+    </rule>
+    <rule head="PrecedenceDec">
+        <rhs>
+            <pattern>Assoc Tokens</pattern>
+            <action><![CDATA[$$ = [$1,$2];]]></action>
+        </rhs>
+    </rule>
+    <rule head="Tokens">
+        <rhs>
+            <pattern>Tokens Symbol</pattern>
+            <action><![CDATA[$$ = $1; $$.push($2);]]></action>
+        </rhs>
+        <rhs>
+            <pattern>Symbol</pattern>
+            <action><![CDATA[$$ = [$1];]]></action>
+        </rhs>
+    </rule>
+    <rule head="Symbol">
+        <rhs>
+            <pattern>grammar_id</pattern>
+            <action><![CDATA[]]></action>
+        </rhs>
+        <rhs>
+            <pattern>grammar_string</pattern>
+            <action><![CDATA[]]></action>
+        </rhs>
+    </rule>
+    <rule head="Assoc">
+        <rhs>
+            <pattern>grammar_dec_left</pattern>
+            <action><![CDATA[$$ = 'left';]]></action>
+        </rhs>
+        <rhs>
+            <pattern>grammar_dec_right</pattern>
+            <action><![CDATA[$$ = 'right';]]></action>
+        </rhs>
+        <rhs>
+            <pattern>grammar_dec_nonassoc</pattern>
+            <action><![CDATA[$$ = 'nonassoc';]]></action>
+        </rhs>
+    </rule>
+    <rule head="GrammarRules">
+        <rhs>
+            <pattern>GrammarRules GrammarRule</pattern>
+            <action><![CDATA[$$ = $1; $$.push($2);]]></action>
+        </rhs>
+        <rhs>
+            <pattern>GrammarRule</pattern>
+            <action><![CDATA[$$ = [$1];]]></action>
+        </rhs>
+    </rule>
+    <rule head="GrammarRule">
+        <rhs>
+            <pattern><![CDATA[grammar_id : HandleActions ;]]></pattern>
+            <action><![CDATA[$$ = {head:$1,bodies:$3};]]></action>
+        </rhs>
+    </rule>
+    <rule head="HandleActions">
+        <rhs>
+            <pattern><![CDATA[HandleActions | HandleAction]]></pattern>
+            <action><![CDATA[$$ = $1; $$.push($3);]]></action>
+        </rhs>
+        <rhs>
+            <pattern><![CDATA[HandleAction]]></pattern>
+            <action><![CDATA[$$ = [$1];]]></action>
+        </rhs>
+    </rule>
+    <rule head="HandleAction">
+        <rhs>
+            <pattern><![CDATA[Handle Prec Action]]></pattern>
+            <action><![CDATA[$$ = {p:$1,prec:$2,a:$3};]]></action>
+        </rhs>
+        <rhs>
+            <pattern><![CDATA[Handle Action]]></pattern>
+            <action><![CDATA[$$ = {p:$1,a:$2};]]></action>
+        </rhs>
+    </rule>
+    <rule head="Handle">
+        <rhs>
+            <pattern><![CDATA[Tokens]]></pattern>
+            <action><![CDATA[]]></action>
+        </rhs>
+        <rhs>
+            <pattern><![CDATA[]]></pattern>
+            <action><![CDATA[$$ = [];]]></action>
+        </rhs>
+    </rule>
+    <rule head="Prec">
+        <rhs>
+            <pattern><![CDATA[grammar_dec_prec Symbol]]></pattern>
+            <action><![CDATA[$$ = $2;]]></action>
+        </rhs>
+    </rule>
+    <rule head="Action">
+        <rhs>
+            <pattern><![CDATA[{ ActionBody }]]></pattern>
+            <action><![CDATA[$$ = $2;]]></action>
+        </rhs>
+        <rhs>
+            <pattern><![CDATA[]]></pattern>
+            <action><![CDATA[$$ = "";]]></action>
+        </rhs>
+    </rule>
+    <rule head="ActionBody">
+        <rhs>
+            <pattern><![CDATA[ActionBody { ActionBody } ActionBody]]></pattern>
+            <action><![CDATA[$$ = $1 + $2 + $3 + $4 + $5;]]></action>
+        </rhs>
+        <rhs>
+            <pattern><![CDATA[grammar_action_body]]></pattern>
+            <action><![CDATA[]]></action>
+        </rhs>
+        <rhs>
+            <pattern><![CDATA[]]></pattern>
+            <action><![CDATA[$$ = "";]]></action>
+        </rhs>
+    </rule>
+    <rule head="LexDec">
+        <rhs>
+            <pattern>lex_begin StateDecs rule_start Rules lex_end</pattern>
             <action><![CDATA[
             $$ = {rules:$4, states:{inclusive:[],exclusive:[]}};
             $2.forEach(function(arr:Array,...args):void
@@ -187,7 +343,7 @@
             ]]></action>
         </rhs>
     </rule>
-    <rule head="Decs">
+    <rule head="StateDecs">
         <rhs>
             <pattern>DecLines</pattern>
         </rhs>
@@ -259,7 +415,7 @@
     </rule>
     <rule head="RuleItem">
         <rhs>
-            <pattern>Pattern Action</pattern>
+            <pattern>Pattern LexAction</pattern>
             <action><![CDATA[$$ = {p:$1,a:$2};]]></action>
         </rhs>
     </rule>
@@ -273,7 +429,7 @@
             <action><![CDATA[$$ = [$1];]]></action>
         </rhs>
     </rule>
-    <rule head="Action">
+    <rule head="LexAction">
         <rhs>
             <pattern>action1</pattern>
         </rhs>

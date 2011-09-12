@@ -116,6 +116,10 @@
             <pattern><![CDATA[>]]></pattern>
             <action><![CDATA[this.begin('RULE_PATTERN'); return 'rb';]]></action>
         </token>
+        <token states="RULE">
+            <pattern><![CDATA[<<EOF>>]]></pattern>
+            <action><![CDATA[this.begin('RULE_SPACE'); return 'pattern';]]></action>
+        </token>
         <token states="RULE RULE_PATTERN">
             <pattern><![CDATA['([^'\\]|\\.)*'|"([^"\\]|\\.)*"]]></pattern>
             <action><![CDATA[this.begin('RULE_SPACE'); $$ = $$.substr(1, $$.length - 2); $$ = $$.replace(/\\(.)/g,"$1"); $$ = $$.replace(/[\\\*\|\?\+\[\]\(\)\^\.\-\{\}]/g,"\\$&"); return 'pattern';]]></action>
