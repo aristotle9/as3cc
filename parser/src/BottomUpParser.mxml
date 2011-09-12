@@ -32,10 +32,10 @@
                     var xmlData:XmlParser = new XmlParser(new XML(fileRef.data));
                     var lr0a:LR0Automata = new LR0Automata(xmlData);
                     inputText.text = lr0a.toString();
-//                    outputText.text = lr0a.glaString();
+                    outputText.text = lr0a.glaString();
                     //                outputText.text = lr0a.tableString();
-                    outputText.text = JSON.encode(lr0a.twoTables, true);
-                    outputText.text += "\nprodList = \n" + JSON.encode(lr0a.prds, true);
+//                    outputText.text = JSON.encode(lr0a.twoTables, true);
+//                    outputText.text += "\nprodList = \n" + JSON.encode(lr0a.prds, true);
                     var head:Array = lr0a.symbols;
                     var i:uint = 0;
                     var cols:Array = new Array;

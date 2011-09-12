@@ -122,8 +122,8 @@ package org.lala.compilercompile.lr0automata
                            }
                            else if(nsm.isNullable)
                            {
-                               p2 = getPstate(nns, nsm as INonTerminal);
-                               p1.addReads(p1);
+                               p2 = getPstate(ns, nsm as INonTerminal);
+                               p1.addReads(p2);
                            }
                            return false;
                        });
