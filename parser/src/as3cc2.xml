@@ -1,0 +1,114 @@
+<as3cc>
+    <lexer>
+        <tokens>
+            <token>
+                <pattern>\s+|(//|#)[^\r\n]*[\r\n]*|/\*([^\*]+\*|\*)([^\*/][^\*]*\*|\*)*/</pattern>
+            </token>
+            <token>
+                <pattern>[1-9]\d*|0</pattern>
+                <action><![CDATA[$$ = parseInt($$); return 'int';]]></action>
+            </token>
+            <token>
+                <pattern>0[0-7]+</pattern>
+                <action><![CDATA[$$ = parseInt(String($$).substring(1), 8); return 'oct';]]></action>
+            </token>
+            <token>
+                <pattern>0[xX][\da-fA-F]+</pattern>
+                <action><![CDATA[$$ = parseInt(String($$).substring(2), 16); return 'hex';]]></action>
+            </token>
+            <token>
+                <pattern>0[bB][01]+</pattern>
+                <action><![CDATA[$$ = parseInt(String($$).substring(2), 2); return 'bin';]]></action>
+            </token>
+            <token>
+                <pattern>"+"</pattern>
+                <action><![CDATA[return '+';]]></action>
+            </token>
+            <token>
+                <pattern>"-"</pattern>
+                <action><![CDATA[return '-';]]></action>
+            </token>
+            <token>
+                <pattern>"*"</pattern>
+                <action><![CDATA[return '*';]]></action>
+            </token>
+            <token>
+                <pattern>"/"</pattern>
+                <action><![CDATA[return '/';]]></action>
+            </token>
+            <token>
+                <pattern>"%"</pattern>
+                <action><![CDATA[return '%';]]></action>
+            </token>
+            <token>
+                <pattern>"~"</pattern>
+                <action><![CDATA[return '~';]]></action>
+            </token>
+            <token>
+                <pattern>"("</pattern>
+                <action><![CDATA[return '(';]]></action>
+            </token>
+            <token>
+                <pattern>")"</pattern>
+                <action><![CDATA[return ')';]]></action>
+            </token>
+        </tokens>
+    </lexer>
+    <parser start="E">
+        <operators>
+            <operator assoc="left"><![CDATA[+ -]]></operator>
+            <operator assoc="left"><![CDATA[* / %]]></operator>
+            <operator assoc="left"><![CDATA[~ UMINUS]]></operator>
+        </operators>
+        <rule head="E">
+            <rhs>
+                <pattern>E + E</pattern>
+                <action><![CDATA[$$ = ['+', $1, $3];]]></action>
+            </rhs>
+            <rhs>
+                <pattern>E - E</pattern>
+                <action><![CDATA[$$ = ['-', $1, $3];]]></action>
+            </rhs>
+            <rhs>
+                <pattern>E * E</pattern>
+                <action><![CDATA[$$ = ['*', $1, $3];]]></action>
+            </rhs>
+            <rhs>
+                <pattern>E / E</pattern>
+                <action><![CDATA[$$ = ['/', $1, $3];]]></action>
+            </rhs>
+            <rhs>
+                <pattern>E % E</pattern>
+                <action><![CDATA[$$ = ['%', $1, $3];]]></action>
+            </rhs>
+            <rhs precedence="~">
+                <pattern><![CDATA[- E]]></pattern>
+                <action><![CDATA[$$ = ['minus', $2];]]></action>
+            </rhs>
+            <rhs>
+                <pattern><![CDATA[~ E]]></pattern>
+                <action><![CDATA[$$ = ['~', $2];]]></action>
+            </rhs>
+            <rhs>
+                <pattern>( E )</pattern>
+                <action><![CDATA[$$ = $2;]]></action>
+            </rhs>
+            <rhs>
+                <pattern>int</pattern>
+                <action><![CDATA[$$ = $1;]]></action>
+            </rhs>
+            <rhs>
+                <pattern>hex</pattern>
+                <action><![CDATA[$$ = $1;]]></action>
+            </rhs>
+            <rhs>
+                <pattern>bin</pattern>
+                <action><![CDATA[$$ = $1;]]></action>
+            </rhs>
+            <rhs>
+                <pattern>oct</pattern>
+                <action><![CDATA[$$ = $1;]]></action>
+            </rhs>
+        </rule>
+    </parser>
+</as3cc>

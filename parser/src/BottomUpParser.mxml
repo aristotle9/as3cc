@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
+                xmlns:mx="library://ns.adobe.com/flex/mx" layout="absolute" fontFamily="Consolas" fontSize="12">
+    <fx:Metadata>
+        [SWF(width="600",height="400")]
+    </fx:Metadata>
+    <fx:Script>
+        <![CDATA[
+            import com.maccherone.json.JSON;
+            
+            import mx.controls.dataGridClasses.DataGridColumn;
+            import mx.events.ListEvent;
+            
+            import org.lala.compilercompile.lr0automata.LR0Automata;
+            import org.lala.compilercompile.utils.SimpleParser;
+            import org.lala.compilercompile.utils.XmlParser;
+            
+            import test.Lexer;
+            import test.Parser;
+            
+            protected var actions:String;
+            protected var tableData:ByteArray;
+            protected function generate():void
+            {
+                var fileRef:FileReference = new FileReference;
+                fileRef.addEventListener(Event.SELECT, function(event:Event):void
+                {
+                    fileRef.load();
+                });
+                fileRef.addEventListener(Event.COMPLETE, function(event:Event):void
+                {
+                    var xmlData:XmlParser = new XmlParser(new XML(fileRef.data));
+                    var lr0a:LR0Automata = new LR0Automata(xmlData);
+                    inputText.text = lr0a.toString();
+//                    outputText.text = lr0a.glaString();
+                    //                outputText.text = lr0a.tableString();
+                    outputText.text = JSON.encode(lr0a.twoTables, true);
+                    outputText.text += "\nprodList = \n" + JSON.encode(lr0a.prds, true);
+                    var head:Array = lr0a.symbols;
+                    var i:uint = 0;
+                    var cols:Array = new Array;
+                    while(i < head.length)
+                    {
+                        var col:DataGridColumn = new DataGridColumn();
+                        col.dataField = head[i].id;
+                        col.headerText = head[i].text;
+                        col.width = 35;
+                        cols.push(col);
+                        i++;
+                    }
+                    table.columns = cols;
+                    table.dataProvider = lr0a.table;
+                    vstk.selectedIndex = 1;
+                    actions = lr0a.actionsOutput();
+                    tableData = lr0a.binaryOutput();
+                });
+                fileRef.browse([new FileFilter("xml","*.xml")]);
+            }
+
+            protected function toggleWindow():void
+            {
+                var i:uint = (vstk.selectedIndex + 1) % vstk.length;
+                vstk.selectedIndex = i;
+            }
+            protected function parse():void
+            {
+                var lex:Lexer = new Lexer();
+                lex.source = inputText.text;
+                var ps:Parser = new Parser();
+                outputText.text = JSON.encode(ps.parse(lex), true);
+            }
+            protected function saveTable():void
+            {
+                var fileRef:FileReference = new FileReference;
+                fileRef.save(tableData, "parserData.dat");
+            }
+            protected function saveActions():void
+            {
+                var fileRef:FileReference = new FileReference;
+                fileRef.save(actions, "parserActions.txt");
+            }
+            protected function toolbarList_itemClickHandler(event:ListEvent):void
+            {
+                // TODO Auto-generated method stub
+                switch(event.columnIndex)
+                {
+                    case 0:
+                        generate();
+                        break;
+                    case 1:
+                        saveTable();
+                        break;
+                    case 2:
+                        saveActions();
+                        break;
+                    case 3:
+                        parse();
+                        break;
+                    case 4:
+                        toggleWindow();
+                        break;
+                    default:
+                        vstk.selectedIndex = event.columnIndex - 5;
+                        break;
+                }
+            }
+            protected function cell_format(item:Object, column:DataGridColumn):String
+            {
+                var index:String = column.dataField;
+                if(index == "0")
+                {
+                    return '[' + item[0] + ']';
+                }
+                else
+                {
+                    var cell:Object = item[index];
+                    if(cell != null)
+                    {
+                        var i:uint = cell['toUint']();
+                        if(i == 1)
+                        {
+                            return 'acc';
+                        }
+                        else
+                        {
+                            if((i & 1) == 0)//reduce
+                            {
+                                return 'r' + (i >>> 1);
+                            }
+                            else
+                            {
+                                return (cell.type == 4 ? '' : 's') + ((i >>> 1) - 1);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        return '';
+                    }
+                }
+            }
+        ]]>
+    </fx:Script>
+
+    <mx:VBox width="100%" height="100%">
+        <mx:TileList id="toolbarList" maxRows="1" width="100%" height="65" columnWidth="55" verticalScrollPolicy="off" itemClick="toolbarList_itemClickHandler(event)">
+            <mx:dataProvider>
+                <fx:Array>
+                    <fx:Object label="生成" icon="@Embed(source='assets/code-32.png')" />
+                    <fx:Object label="转表" icon="@Embed(source='assets/news-32.gif')" />
+                    <fx:Object label="代码" icon="@Embed(source='assets/images-32.gif')" />
+                    <fx:Object label="解析" icon="@Embed(source='assets/alerts-32.png')" />
+                    <fx:Object label="切换" icon="@Embed(source='assets/images-32.gif')" />
+                    <fx:Object label="图表" icon="@Embed(source='assets/news-32.gif')" />
+                    <fx:Object label="表格" icon="@Embed(source='assets/alerts-32.png')" />
+                    <fx:Object label="数组" icon="@Embed(source='assets/docs-32.png')" />
+                </fx:Array>
+            </mx:dataProvider>
+        </mx:TileList>
+        <mx:ViewStack id="vstk" creationPolicy="all" width="100%" height="100%">
+            <mx:Canvas>
+                <mx:TextArea id="inputText" width="100%" height="100%"  backgroundColor="#FFFFE1">
+                    <mx:text>1 + 2 + 3</mx:text>
+                </mx:TextArea>
+            </mx:Canvas>
+            <mx:Canvas>
+                <mx:DataGrid id="table" width="100%" height="100%" horizontalScrollPolicy="auto" labelFunction="{cell_format}">
+                </mx:DataGrid>
+            </mx:Canvas>
+            <mx:Canvas>
+                <mx:TextArea id="outputText" width="100%" height="100%" backgroundColor="#FFFFE1" />
+            </mx:Canvas>
+        </mx:ViewStack>
+    </mx:VBox>
+</mx:Application>
