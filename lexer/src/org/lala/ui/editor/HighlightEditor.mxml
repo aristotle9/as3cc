@@ -5,6 +5,12 @@
         <![CDATA[
             import mx.controls.textClasses.TextRange;
             import mx.events.FlexEvent;
+            import mx.events.ItemClickEvent;
+            
+            import org.lala.ui.editor.commands.DeleteLinesCommand;
+            import org.lala.ui.editor.commands.IndentCommand;
+            import org.lala.ui.editor.commands.UnIndentCommand;
+            import org.lala.ui.editor.interfaces.ICommand;
             /** 样式定义 **/
             protected const cssString:String = ".lex_begin,.lex_end,.rule_start,.grammar_begin,.grammar_rule_begin{color:#880000;font-weight:bold;}" +
                 ".dec_head{color:#666600;font-weight:bold;}" +
@@ -80,20 +86,53 @@
 
             protected function editor_keyFocusChangeHandler(event:FocusEvent):void
             {
+                var cmd:ICommand; 
                 event.preventDefault();
-                var left:String = editor.text.substr(0, editor.selectionBeginIndex);
-                var right:String = editor.text.substring(editor.selectionBeginIndex);
-                editor.text = left + '    ' + right;
-                editor.selectionBeginIndex += 4;
-                editor.selectionEndIndex += 4;
-                needColor();
+                if(event.shiftKey == false)
+                {
+                    cmd = new IndentCommand(editor);
+                }
+                else
+                {
+                    cmd = new UnIndentCommand(editor);
+                }
+                cmd.exec();
+            }
+
+            protected function editor_keyDownHandler(event:KeyboardEvent):void
+            {
+            }
+
+            protected function buttonbar1_itemClickHandler(event:ItemClickEvent):void
+            {
+                var cmd:ICommand = null;
+                switch(event.item.label)
+                {
+                    case "^d":
+                        cmd = new DeleteLinesCommand(editor);
+                        break;
+                }
+                if(cmd != null)
+                {
+                    cmd.exec();
+                }
+                editor.setFocus();
             }
 
         ]]>
     </fx:Script>
+    <mx:VBox width="100%" height="100%" verticalGap="1">
+    <mx:ButtonBar height="20" itemClick="buttonbar1_itemClickHandler(event)" toolTipField="tip" labelField="label">
+        <mx:dataProvider>
+            <fx:Array>
+                <fx:Object tip="删除行" label="^d"/>
+            </fx:Array>
+        </mx:dataProvider>
+    </mx:ButtonBar>
     <mx:HBox width="100%" height="100%" horizontalGap="0">
-        <mx:Canvas width="20" height="100%" backgroundColor="#A0CAF0"/>
-        <mx:TextArea width="100%" height="100%" id="editor" change="needColor()" text="@{this.text}" backgroundColor="#FFFFE1" fontFamily="Consolas" fontSize="14" color="#003344" wordWrap="false" keyFocusChange="editor_keyFocusChangeHandler(event)">
+        <mx:Canvas width="20" height="100%" backgroundColor="#BBD9EE"/>
+        <mx:TextArea height="100%" id="editor" change="needColor()" text="@{this.text}" backgroundColor="#FFFFE1" fontFamily="Consolas" fontSize="14" color="#003344" wordWrap="false" keyFocusChange="editor_keyFocusChangeHandler(event)" keyDown="editor_keyDownHandler(event)" width="100%" focusThickness="0">
     </mx:TextArea>
     </mx:HBox>
+    </mx:VBox>
 </mx:Canvas>

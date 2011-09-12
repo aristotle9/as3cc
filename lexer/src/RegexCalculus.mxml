@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <mx:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
-                xmlns:mx="library://ns.adobe.com/flex/mx" layout="absolute" minWidth="300" minHeight="200" creationComplete="application1_creationCompleteHandler(event)" creationPolicy="all" xmlns:editor="org.lala.ui.editor.*">
+                xmlns:mx="library://ns.adobe.com/flex/mx" layout="absolute" minWidth="300" minHeight="200" creationComplete="application1_creationCompleteHandler(event)" creationPolicy="all" xmlns:editor="org.lala.ui.editor.*" backgroundColor="#FFFFFF">
     <fx:Metadata>
-        [SWF(width="800",height="700")]
+        [SWF(width="750",height="525")]
     </fx:Metadata>
     <fx:Script>
         <![CDATA[
@@ -202,9 +202,9 @@
 
         ]]>
     </fx:Script>
-    <mx:VBox width="100%" height="100%">
-        <mx:HBox width="100%" height="23" horizontalAlign="center" verticalAlign="middle">
-            <mx:ButtonBar id="viewChanges" height="100%">
+    <mx:VBox width="100%" height="100%" verticalGap="0">
+        <mx:HBox width="100%" height="25" horizontalAlign="center" verticalAlign="middle" backgroundColor="#EDECDA">
+            <mx:ButtonBar id="viewChanges">
                 <mx:dataProvider>
                     <fx:Array>
                         <fx:String>LexerGenerator</fx:String>
@@ -213,25 +213,25 @@
                 </mx:dataProvider>                
             </mx:ButtonBar>
         </mx:HBox>
-        <mx:ViewStack id="viewPanels" selectedIndex="{viewChanges.selectedIndex}" width="100%" height="100%">
+        <mx:ViewStack id="viewPanels" selectedIndex="{viewChanges.selectedIndex}" width="100%" height="100%" backgroundColor="#FFBF80">
             <mx:VBox width="100%" height="100%">
-                <mx:HBox width="100%" height="23" verticalAlign="middle" horizontalAlign="center">
-                    <mx:Button id="loadFileBt" label="LoadSource" click="loadFileBt_clickHandler(event)" width="95" height="100%" />
-                    <mx:Button id="saveFileBt" label="SaveResult" click="saveFileBt_clickHandler(event)" width="95" height="100%" />
-                    <mx:Button id="saveActionBt" label="SaveAction" click="saveActionBt_clickHandler(event)" width="95" height="100%" />
+                <mx:HBox width="100%" height="25" verticalAlign="middle" horizontalAlign="center">
+                    <mx:Button id="loadFileBt" label="LoadSource" click="loadFileBt_clickHandler(event)" width="95" fillAlphas="[1.0, 1.0, 1.0, 1.0]" fillColors="[#BEDF5D, #D6EB9A]"/>
+                    <mx:Button id="saveFileBt" label="SaveResult" click="saveFileBt_clickHandler(event)" width="95" fillAlphas="[1.0, 1.0, 1.0, 1.0]" fillColors="[#BEDF5D, #D6EB9A]"/>
+                    <mx:Button id="saveActionBt" label="SaveAction" click="saveActionBt_clickHandler(event)" width="95" fillAlphas="[1.0, 1.0, 1.0, 1.0]" fillColors="[#BEDF5D, #D6EB9A]"/>
                     <!--<mx:Button label="LexTest" id="testBt" click="testBt_clickHandler(event)" height="100%" width="95"/>-->    
-                    <mx:Button label="CleanTest" id="testCleanBt" click="testOutputText.text=''" height="100%" width="95"/>    
+                    <mx:Button label="CleanTest" id="testCleanBt" click="testOutputText.text=''" width="95" fillAlphas="[1.0, 1.0, 1.0, 1.0]" fillColors="[#BEDF5D, #D6EB9A]"/>    
                 </mx:HBox>
                 <editor:HighlightEditor id="testInputText" height="85%" width="100%">
                 </editor:HighlightEditor>
-                <mx:TextArea id="testOutputText" height="15%" width="100%" backgroundColor="#EEEED1" fontFamily="Consolas" fontSize="12" editable="false" borderThickness="1" color="#003344" borderColor="#B7BABC">
+                <mx:TextArea id="testOutputText" height="15%" width="100%" backgroundColor="#FAF6E2" fontFamily="Consolas" fontSize="12" editable="false" borderThickness="1" color="#003344" borderColor="#B7BABC">
                 </mx:TextArea>
             </mx:VBox>
             <mx:VBox width="100%" height="100%">
-                <mx:TextArea id="outputText" editable="false" borderThickness="1" height="50%" width="100%" backgroundColor="#EEEED1" fontFamily="Consolas" fontSize="12" color="#003344" borderColor="#B7BABC">
+                <mx:TextArea id="outputText" editable="false" borderThickness="1" height="75%" width="100%" backgroundColor="#FAF6E2" fontFamily="Consolas" fontSize="12" color="#003344" borderColor="#B7BABC">
                 </mx:TextArea>
-                <mx:HBox width="100%" height="50%">
-                    <mx:TextArea text="(a|b)*abb" id="inputText" width="100%" height="100%" backgroundColor="#FFFFE1" fontFamily="Consolas" fontSize="12" color="#003344">
+                <mx:HBox width="100%" height="25%">
+                    <mx:TextArea text="(a|b)*abb" id="inputText" width="100%" height="100%" backgroundColor="#FAF1C3" fontFamily="Consolas" fontSize="12" color="#003344">
                     </mx:TextArea>
                     <mx:VBox height="100%" width="120" verticalAlign="middle">
                         <mx:Button label="Clean" id="clsBt" click="clsBt_clickHandler(event)"  width="100%"/>    
