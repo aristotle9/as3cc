@@ -89,6 +89,11 @@ package test
             return [__line,__col];
         }
         
+        public function get positionInfo():String
+        {
+            return token + '@row:' + position.join('col:');   
+        }
+        
         public function get yytext():*
         {
             return __yytext;
