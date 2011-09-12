@@ -1,0 +1,113 @@
+<as3cc>
+    <lexer>
+        <group>
+            <token name="blank" skip="yes">
+                <pattern>\s+</pattern>
+            </token>
+            <token name="int">
+                <pattern>\d+</pattern>
+                <action><![CDATA[$$ = parseInt($$);]]></action>
+            </token>
+            <token name="float">
+                <pattern>\d*\.\d+|\d+\.\d*</pattern>
+                <action><![CDATA[$$ = parseFloat($$);]]></action>
+            </token>
+            <token name="hex">
+                <pattern>0[xX][\da-fA-F]+</pattern>
+                <action><![CDATA[$$ = parseInt($$.substring(2), 16);]]></action>
+            </token>
+            <token name="string">
+                <pattern>'([^'\\]|\\.)*'|"([^"\\]|\\.)*"</pattern>
+                <action><![CDATA[$$ = $$.substr(1, $$.length - 2);]]></action>
+            </token>
+            <token name="id">
+                <pattern>[a-zA-Z_$@][\w_$@]*</pattern>
+            </token>
+        </group>
+        <tokens><![CDATA[{ } [ ] ( ) , :]]></tokens>
+    </lexer>
+    <parser start="Complex">
+        <rule head="Complex">
+            <rhs>
+                <pattern>'[' ArrayList ']'</pattern>
+                <action><![CDATA[$$ = $2;]]></action>
+            </rhs>
+            <rhs>
+                <pattern>'{' ObjectList '}'</pattern>
+                <action><![CDATA[$$ = $2;]]></action>
+            </rhs>
+            <rhs>
+                <pattern>'{' ObjectList ',' '}'</pattern>
+                <action><![CDATA[$$ = $2;]]></action>
+            </rhs>
+            <rhs>
+                <pattern>'{' '}'</pattern>
+                <action><![CDATA[$$ = {};]]></action>
+            </rhs>
+        </rule>
+        <rule head="ArrayList">
+            <rhs>
+                <pattern>ArrayList ',' Expr</pattern>
+                <action><![CDATA[$1.push($3);$$ = $1;]]></action>
+            </rhs>
+            <rhs>
+                <pattern>Expr</pattern>
+                <action><![CDATA[$$ = [$1];]]></action>
+            </rhs>
+        </rule>
+        <rule head="ObjectList">
+            <rhs>
+                <pattern>ObjectList ',' ObjectName ':' Expr</pattern>
+                <action><![CDATA[$1[$3] = $5; $$ = $1;]]></action>
+            </rhs>
+            <rhs>
+                <pattern>ObjectName ':' Expr</pattern>
+                <action><![CDATA[$$ = {};$$[$1] = $3;]]></action>
+            </rhs>
+        </rule>
+        <rule head="ObjectName">
+            <rhs>
+                <pattern>string</pattern>
+                <action><![CDATA[]]></action>
+            </rhs>
+            <rhs>
+                <pattern>int</pattern>
+                <action><![CDATA[]]></action>
+            </rhs>
+            <rhs>
+                <pattern>id</pattern>
+                <action><![CDATA[]]></action>
+            </rhs>
+        </rule>
+        <rule head="Expr">
+            <rhs>
+                <pattern>Complex</pattern>
+                <action><![CDATA[]]></action>
+            </rhs>
+            <rhs>
+                <pattern>'(' Expr ')'</pattern>
+                <action><![CDATA[$$ = $2;]]></action>
+            </rhs>
+            <rhs>
+                <pattern>int</pattern>
+                <action><![CDATA[]]></action>
+            </rhs>
+            <rhs>
+                <pattern>float</pattern>
+                <action><![CDATA[]]></action>
+            </rhs>
+            <rhs>
+                <pattern>hex</pattern>
+                <action><![CDATA[]]></action>
+            </rhs>
+            <rhs>
+                <pattern>string</pattern>
+                <action><![CDATA[]]></action>
+            </rhs>
+            <rhs>
+                <pattern></pattern>
+                <action><![CDATA[$$ = null]]></action>
+            </rhs>
+        </rule>
+    </parser>
+</as3cc>
