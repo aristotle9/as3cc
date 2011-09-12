@@ -34,7 +34,7 @@ package test
                 state = stateStack[stateStack.length - 1];
                 if(actionTable[inputTable[token]][state] == null)
                 {
-                    throw new Error("Parse Error:" + token);
+                    throw new Error("Parse Error:" + lexer.positionInfo);
                 }
                 else
                 {
@@ -71,7 +71,7 @@ package test
                     state = stateStack[stateStack.length - 1];
                     if(gotoTable[prodList[pi][0]][state] == null)
                     {
-                        throw new Error("Goto Error!" + token);
+                        throw new Error("Goto Error!" + lexer.positionInfo);
                     }
                     else
                     {

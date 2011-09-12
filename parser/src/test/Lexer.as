@@ -15,6 +15,7 @@ package test
         protected var __oldStart:uint;
         protected var __tokenName:String;
         protected var __yytext:*;
+        protected var __yy:Object;
         protected var __ended:Boolean;
         protected var __initialInput:Number;
         protected var __initialState:String;
@@ -48,6 +49,7 @@ package test
             __col = 0;
             __advanced = true;
             __tokenName = null;
+            __yy = {};
             initialState = "INITIAL";
         }
         
@@ -87,6 +89,11 @@ package test
             return [__line,__col];
         }
         
+        public function get positionInfo():String
+        {
+            return token + '@row:' + position.join('col:');   
+        }
+        
         public function get yytext():*
         {
             return __yytext;
@@ -100,6 +107,11 @@ package test
         public function set yytext(value:*):void
         {
             __yytext = value;
+        }
+        
+        public function get yy():Object
+        {
+            return __yy;
         }
 
         public function get tokenName():String
@@ -254,5 +266,7 @@ package test
             __initialState = value;
             __initialInput = statesInputTable[value];
         }
+
+
     }
 }
