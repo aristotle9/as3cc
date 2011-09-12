@@ -1,0 +1,39 @@
+switch(__findex)
+{
+case 0x1:
+    yytext = parseInt(yytext); return 'int';
+    break;
+case 0x2:
+    yytext = parseInt(String(yytext).substring(1), 8); return 'oct';
+    break;
+case 0x3:
+    yytext = parseInt(String(yytext).substring(2), 16); return 'hex';
+    break;
+case 0x4:
+    yytext = parseInt(String(yytext).substring(2), 2); return 'bin';
+    break;
+case 0x5:
+    return '+';
+    break;
+case 0x6:
+    return '-';
+    break;
+case 0x7:
+    return '*';
+    break;
+case 0x8:
+    return '/';
+    break;
+case 0x9:
+    return '%';
+    break;
+case 0xA:
+    return '~';
+    break;
+case 0xB:
+    return '(';
+    break;
+case 0xC:
+    return ')';
+    break;
+}

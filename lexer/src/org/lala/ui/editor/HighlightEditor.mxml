@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:fx="http://ns.adobe.com/mxml/2009" 
+           xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%" creationComplete="canvas1_creationCompleteHandler(event)">
+    <fx:Script>
+        <![CDATA[
+            import mx.controls.textClasses.TextRange;
+            import mx.events.FlexEvent;
+            /** 样式定义 **/
+            protected const cssString:String = ".lex_begin,.lex_end,.rule_start,.grammar_begin,.grammar_rule_begin{color:#880000;font-weight:bold;}" +
+                ".dec_head{color:#666600;font-weight:bold;}" +
+                ".name{color:#660066;}" +
+                ".lb,.rb{color: #666600;}" +//<>
+                ".pattern{color:#0068CF;}" +
+                ".comment{color: #008800;}" +
+                ".action{color:#000088;}" +
+                ".code{color:#006666}" +
+                ".grammar_dec_left,.grammar_dec_right,.grammar_dec_nonassoc,.grammar_dec_prec,.grammar_dec_start{color:#666600;font-weight:bold;}" +
+                ".grammar_id{color:#0068CF;}" +
+                ".grammar_string{color:#660066;}" +
+                ".grammar_action_body{color:#000088;}";
+            /** 样式数据 **/
+            protected var codeStyle:StyleSheet;
+            /** 冷却时间 **/
+            protected var coldTimer:Timer;
+            
+            [Bindable]public var text:String;
+
+            protected function canvas1_creationCompleteHandler(event:FlexEvent):void
+            {
+                /** 解析定义文本 **/
+                codeStyle = new StyleSheet;
+                codeStyle.parseCSS(cssString);
+                coldTimer = new Timer(200, 1);
+                coldTimer.addEventListener(TimerEvent.TIMER_COMPLETE, colorIt);
+            }
+            
+            protected function needColor():void
+            {
+                if(!coldTimer.running)
+                {
+                    coldTimer.start();
+                }
+                else
+                {
+                    coldTimer.reset();
+                }
+            }
+            
+            protected function colorIt(event:Event=null):void
+            {
+                var lexInfo:Array = HighlightAssist.getInstance().lexInfo(editor.text);
+                var tr:TextRange;
+                var lastIndex:uint = 0;
+                lexInfo.forEach(function(info:Array,...args):void
+                {
+                    var obj:Object = codeStyle.getStyle('.' + info[0]);
+                    if(obj != null)
+                    {
+                        tr = new TextRange(editor, false, info[1], info[2]);
+                        tr.color = obj.color;
+                        tr.fontWeight = obj.fontWeight;
+                    }
+                    else
+                    {
+                        tr = new TextRange(editor, false, info[1], info[2]);
+                        tr.color = 0x222222;
+                    }
+                });
+                if(lexInfo.length > 0)
+                {
+                    lastIndex = lexInfo[lexInfo.length - 1][2];
+                }
+                if(lastIndex <= editor.length - 1)
+                {
+                    tr = new TextRange(editor, false, lastIndex, editor.length);
+                    tr.color = 0x000000;
+                    tr.fontWeight = "normal";
+                }
+            }
+
+            protected function editor_keyFocusChangeHandler(event:FocusEvent):void
+            {
+                event.preventDefault();
+                var left:String = editor.text.substr(0, editor.selectionBeginIndex);
+                var right:String = editor.text.substring(editor.selectionBeginIndex);
+                editor.text = left + '    ' + right;
+                editor.selectionBeginIndex += 4;
+                editor.selectionEndIndex += 4;
+                needColor();
+            }
+
+        ]]>
+    </fx:Script>
+    <mx:HBox width="100%" height="100%" horizontalGap="0">
+        <mx:Canvas width="20" height="100%" backgroundColor="#A0CAF0"/>
+        <mx:TextArea width="100%" height="100%" id="editor" change="needColor()" text="@{this.text}" backgroundColor="#FFFFE1" fontFamily="Consolas" fontSize="14" color="#003344" wordWrap="false" keyFocusChange="editor_keyFocusChangeHandler(event)">
+    </mx:TextArea>
+    </mx:HBox>
+</mx:Canvas>

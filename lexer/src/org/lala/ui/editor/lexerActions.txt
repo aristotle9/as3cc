@@ -1,0 +1,108 @@
+switch(__findex)
+{
+case 0x0:
+    return 'grammar_dec_left';;
+    break;
+case 0x1:
+    return 'grammar_dec_right';;
+    break;
+case 0x2:
+    return 'grammar_dec_nonassoc';;
+    break;
+case 0x3:
+    return 'grammar_dec_start';;
+    break;
+case 0x4:
+    this.begin("GRAMMAR_RULE"); return 'grammar_rule_begin';;
+    break;
+case 0x5:
+    return 'grammar_id';;
+    break;
+case 0x6:
+    yytext = yytext.substr(1, yyleng - 2); return 'grammar_string';;
+    break;
+case 0x7:
+    return 'grammar_dec_prec';;
+    break;
+case 0x8:
+    return ':';;
+    break;
+case 0x9:
+    return ';';;
+    break;
+case 0xA:
+    return '|';;
+    break;
+case 0xB:
+    yy.depth = 0; this.begin("GRAMMAR_ACTION"); return '{';;
+    break;
+case 0xC:
+    yy.depth ++; return '{';;
+    break;
+case 0xD:
+    yy.depth == 0 ? this.begin('GRAMMAR_RULE') : yy.depth --; return '}';;
+    break;
+case 0xE:
+    return 'grammar_action_body';;
+    break;
+case 0xF:
+    this.begin("DEC"); return 'lex_begin';;
+    break;
+case 0x11:
+    this.begin("DEC_COND"); return 'dec_head';;
+    break;
+case 0x12:
+    return 'name';;
+    break;
+case 0x13:
+    return 'name';;
+    break;
+case 0x14:
+    /* skip */;
+    break;
+case 0x15:
+    this.begin('DEC');;
+    break;
+case 0x16:
+    return 'comment';;
+    break;
+case 0x17:
+    this.begin('RULE'); return 'rule_start';;
+    break;
+case 0x18:
+    this.begin('INITIAL'); return 'lex_end';;
+    break;
+case 0x19:
+    this.begin('RULE_COND'); return 'lb';;
+    break;
+case 0x1A:
+    this.begin('RULE_PATTERN'); return 'rb';;
+    break;
+case 0x1B:
+    this.begin('RULE_SPACE'); yytext = yytext.substr(1, yytext.length - 2); yytext = yytext.replace(/\\(.)/g,"$1"); yytext = yytext.replace(/[\\\*\|\?\+\[\]\(\)\^\.\-\{\}]/g,"\\$&"); return 'pattern';;
+    break;
+case 0x1C:
+    /**begin without < **/this.begin('RULE_SPACE'); return 'pattern';;
+    break;
+case 0x1D:
+    this.begin('RULE_SPACE'); return 'pattern';;
+    break;
+case 0x1E:
+    this.begin('RULE_INDENT');;
+    break;
+case 0x1F:
+    /** skip **/;
+    break;
+case 0x20:
+    this.begin('RULE');;
+    break;
+case 0x21:
+    this.begin('RULE_TRIAL'); yytext = yytext.substr(1, yytext.length - 2); return 'action';;
+    break;
+case 0x22:
+    /* support %} in literal string, but in comment is not support yet */this.begin('RULE_TRIAL'); yytext = yytext.substr(2, yytext.length - 4); return 'action';;
+    break;
+case 0x23:
+    this.begin('RULE_TRIAL'); return 'action';;
+    break;
+}

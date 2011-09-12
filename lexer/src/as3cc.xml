@@ -1,0 +1,108 @@
+<as3cc>
+    <lexer>
+        <states>
+            <inclusive></inclusive>
+            <exclusive>CMT</exclusive>
+        </states>
+        <tokens>
+            <token>
+                <pattern>\s+</pattern>
+                <action><![CDATA[/* skip */]]></action>
+            </token>
+            <token>
+                <pattern>/\*</pattern>
+                <action><![CDATA[this.begin('CMT');]]></action>
+            </token>
+            <token states="CMT">
+                <pattern>.</pattern>
+                <action><![CDATA[]]></action>
+            </token>
+            <token states="CMT">
+                <pattern>\*/</pattern>
+                <action><![CDATA[this.begin();]]></action>
+            </token>
+            <token>
+                <pattern>true|false</pattern>
+                <action><![CDATA[return "bool";]]></action>
+            </token>
+            <token>
+                <pattern>[1-9]\d*|0</pattern>
+                <action><![CDATA[return "int";]]></action>
+            </token>
+            <token>
+                <pattern>0[0-7]+</pattern>
+                <action><![CDATA[return "oct";]]></action>
+            </token>
+            <token>
+                <pattern>0[xX][\da-fA-F]+</pattern>
+                <action><![CDATA[return "hex";]]></action>
+            </token>
+            <token>
+                <pattern>\d*\.\d+</pattern>
+                <action><![CDATA[return "float";]]></action>
+            </token>
+            <token>
+                <pattern>'([^'\\]|\\.)*'|"([^"\\]|\\.)*"</pattern>
+                <action><![CDATA[return "string";]]></action>
+            </token>
+        </tokens>
+        <tokens>
+            <token>
+                <pattern>[a-zA-Z_$@][\w_$@]*</pattern>
+                <action><![CDATA[return "id";]]></action>
+            </token>
+        </tokens>
+        <!-- tokens 不用转义 -->
+<!--         <tokens assoc="left">,</tokens> -->
+<!--         <tokens assoc="left">;</tokens> -->
+<!--         <tokens assoc="left">\</tokens> -->
+<!--         <tokens assoc="left">:</tokens> -->
+<!--         <tokens assoc="right"><![CDATA[= := += -= *= /= %= &&= ||= >>= <<= >>>= <<<= |= &= ^=]]></tokens> -->
+<!--         <tokens assoc="left">?</tokens> -->
+<!--         <tokens assoc="left">||</tokens> -->
+<!--         <tokens assoc="left"><![CDATA[&&]]></tokens> -->
+<!--         <tokens assoc="left">|</tokens> -->
+<!--         <tokens assoc="left">^</tokens> -->
+<!--         <tokens assoc="left"><![CDATA[&]]></tokens> -->
+<!--         <tokens assoc="left"><![CDATA[== != <= >= < > <>]]></tokens> -->
+<!--         <tokens assoc="left"><![CDATA[<< >> >>>]]></tokens> -->
+<!--         <tokens assoc="left">+ -</tokens> -->
+<!--         <tokens assoc="left">* / %</tokens> -->
+<!--         <tokens assoc="left">~ !</tokens> -->
+<!--         <tokens assoc="left">**</tokens> -->
+<!--         <tokens assoc="left">++ --</tokens> -->
+<!--         <tokens assoc="left"><![CDATA[( ) . [ ] { }]]></tokens> -->
+    </lexer>
+    <parser start="Program">
+        <rule head="Program">
+            <rhs>
+                <pattern>Expr</pattern>
+                <action></action>
+            </rhs>
+            <rhs>
+                <pattern/>
+                <action></action>
+            </rhs>
+        </rule>
+        <rule head="Expr">
+            <rhs>
+                <pattern>PrimaryExpr</pattern>
+                <action></action>
+            </rhs>
+            <rhs>
+                <pattern>Expr '=' Expr</pattern>
+                <action></action>
+            </rhs>
+            <rhs precedence="!">
+                <pattern>'-' Expr</pattern>
+                <action></action>
+            </rhs>
+        </rule>
+        <rule head="PrimaryExpr">
+            <rhs>
+                <pattern>'(' Expr ')'</pattern>
+                <action></action>
+            </rhs>
+        </rule>
+    </parser>
+</as3cc>
