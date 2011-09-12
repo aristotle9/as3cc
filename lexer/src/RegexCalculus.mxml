@@ -15,12 +15,12 @@
             import org.lala.lex.interfaces.IInputSet;
             import org.lala.lex.interfaces.INFA;
             import org.lala.lex.nfa.InputSet;
+            import org.lala.lex.utils.LexerGenerator;
             import org.lala.lex.utils.NFAUtil;
             import org.lala.lex.utils.RegToken;
             import org.lala.lex.utils.RegexUtil;
             
-            import test.Lexer;
-            public const lex:Lexer = new Lexer();
+            private var lexerGenerator:LexerGenerator;
             protected function execBt_clickHandler(event:MouseEvent):void
             {
                 log(RegexUtil.lex_with_extends(inputText.text));
@@ -50,7 +50,6 @@
                 outputText.text = "";
             }
 
-
             protected function dfaBt_clickHandler(event:MouseEvent):void
             {
                 var tokens:Vector.<RegToken> = RegexUtil.lex_with_extends(inputText.text);
@@ -72,68 +71,6 @@
                 log(RegexUtil.nfa_dot(nfa));
             }
             
-            protected function gen_lexer_test():void
-            {
-                return;//配置格式更改,下列配置方式已經失效
-                var nfa:INFA;
-                var states:Object = {
-                    inclusive:"state1 state2 state3",
-                    exclusive:"state4 state5 state6"
-                };
-                var data:Array = [
-                    // \ 本身\\\\ * \\*
-//                    {pattern:'[ \\t\\r\\n]+|(//|#)[^\\r\\n]*[\\r\\n]*|/\\*([^\\*]+\\*|\\*)([^\\*/][^\\*]*\\*|\\*)*/'},
-                    {states:"state1 state2", pattern:'true|false', action:"return 'bool';"},
-                    {states:"state4 state5", pattern:"[1-9]\\d*|0", action:"return 'int';"},
-                    {pattern:"0[0-7]+", action:"return 'oct';"},
-                    {pattern:"0x[\\da-f]+", action:"return 'hex';"},
-                    {pattern:"\\d*\\.\\d+", action:"return 'float';"}
-//                    {pattern:"[a-zA-Z_$@][\\w_$@]*", action:"return 'id';"},
-//                    {pattern:'\'([^\'\\\\]|\\\\.)*\'|\"([^\"\\\\]|\\\\.)*\"', action:"return 'str';"}
-                ];
-                nfa = RegexUtil.CREATE_NFA(data, 0, 0xff, states);
-//                log(RegexUtil.nfa_dot(nfa));
-//                return;
-                nfa = RegexUtil.NFA_DFA(nfa);
-//                log(RegexUtil.nfa_dot(nfa));
-//                return;
-                nfa = NFAUtil.min_dfa(nfa, true);
-                var tb:Array = RegexUtil.DFA_TABLE(nfa); 
-                var r:Array = RegexUtil.INPUT_COMPRESS(tb);
-                var f:Array = RegexUtil.FINAL_STATES(nfa);
-                var iptTable:Array = r[1];
-                /** 设置映射表 **/
-                nfa.inputSet.every(function(ipt:IInput):Boolean
-                {
-                    if(ipt != InputSet.E)
-                    {
-                        ipt.compressed = iptTable[ipt.id];
-                    }
-                    return false;
-                });
-                log(RegexUtil.nfa_dot(nfa));
-//                log(RegexUtil.PRETTY_PRINT(r[0], f, nfa.inputSet.inputTable()));
-//                lex.stateTrans = r[0];
-//                lex.finalIndices = f;
-//                lex.inputTrans = nfa.inputSet.inputTable(); 
-            }
-
-            protected function testBt_clickHandler(event:MouseEvent):void
-            {
-                lex.source = testInputText.text;
-                var tk:String = lex.token;
-                var result:Array = [];
-                while(tk != "<$>")
-                {
-                    result.push(tk);
-                    lex.advance();
-                    tk = lex.token;
-                }
-                result.push(tk);
-                testOutputText.text += JSON.encode(result, true);
-            }
-            protected var bta:ByteArray;
-            protected var config:Object;
             protected function loadFileBt_clickHandler(event:MouseEvent):void
             {
                 var fileRef:FileReference = new FileReference();
@@ -143,36 +80,10 @@
                 });
                 fileRef.addEventListener(Event.COMPLETE, function(event:Event):void
                 {
-                    var result0:Object = RegexUtil.PARSE_LEXER_SOURCE(new XML(fileRef.data));
-                    config = result0;
-                    var nfa:INFA;
-                    nfa = RegexUtil.CREATE_NFA(result0.lexer.rules,0,0xffff, result0.lexer.states);
-                    nfa = RegexUtil.NFA_DFA(nfa);
-                    nfa = NFAUtil.min_dfa(nfa, true);
-                    var stateTable:Array = RegexUtil.DFA_TABLE(nfa); 
-                    var result1:Array = RegexUtil.INPUT_COMPRESS(stateTable);
-                    var finalStates:Array = RegexUtil.FINAL_STATES(nfa);
-                    var inputTable:Array = result1[1];
-                    /** 设置映射表 **/
-                    nfa.inputSet.every(function(ipt:IInput):Boolean
-                    {
-                        if(ipt != InputSet.E)
-                        {
-                            ipt.compressed = inputTable[ipt.id];
-                        }
-                        return false;
-                    });
-                    var statesInputTable:Object = RegexUtil.DFA_INPUT_STATES(nfa);
-                    bta = RegexUtil.TABLES_COMPRESS(result1[0], finalStates, nfa.inputSet.inputTable(), statesInputTable);
+                    var config:Object = RegexUtil.PARSE_LEXER_SOURCE(new XML(fileRef.data));
+                    lexerGenerator = new LexerGenerator(config);
+                    lexerGenerator.generate();
                     testOutputText.text += "ok.\n";
-//                    log(JSON.encode(statesInputTable, true));
-//                    log(RegexUtil.PRETTY_PRINT(result1[0], finalStates, nfa.inputSet.inputTable()));
-                    /** 测试使用词法分割器 **/
-                    //已经无法实时测试了,因为使用了return 语句;
-//                    lex.stateTrans = result1[0];
-//                    lex.finalIndices = finalStates;
-//                    lex.inputTrans = nfa.inputSet.inputTable();
-//                    lex.statesInputTable = statesInputTable;
                 });
                 fileRef.browse([new FileFilter("xml","*.xml")]);
             }
@@ -180,24 +91,18 @@
             protected function saveFileBt_clickHandler(event:MouseEvent):void
             {
                 var fileRef:FileReference = new FileReference();
-                fileRef.save(bta,"lexerData.dat");
+                fileRef.save(lexerGenerator.tableBytes, "lexerData.dat");
             }
 
             protected function saveActionBt_clickHandler(event:MouseEvent):void
             {
                 var fileRef:FileReference = new FileReference;
-                fileRef.save(RegexUtil.ACTION_FILE(config), "lexerActions.txt");
+                fileRef.save(lexerGenerator.actionString, "lexerActions.txt");
             }
 
             protected function application1_creationCompleteHandler(event:FlexEvent):void
             {
                 viewChanges.selectedIndex = 0;
-            }
-
-
-            protected function lexdfaBt_clickHandler(event:MouseEvent):void
-            {
-                gen_lexer_test();
             }
 
         ]]>
@@ -216,11 +121,10 @@
         <mx:ViewStack id="viewPanels" selectedIndex="{viewChanges.selectedIndex}" width="100%" height="100%" backgroundColor="#FFBF80">
             <mx:VBox width="100%" height="100%">
                 <mx:HBox width="100%" height="25" verticalAlign="middle" horizontalAlign="center">
-                    <mx:Button id="loadFileBt" label="LoadSource" click="loadFileBt_clickHandler(event)" width="95" fillAlphas="[1.0, 1.0, 1.0, 1.0]" fillColors="[#BEDF5D, #D6EB9A]"/>
-                    <mx:Button id="saveFileBt" label="SaveResult" click="saveFileBt_clickHandler(event)" width="95" fillAlphas="[1.0, 1.0, 1.0, 1.0]" fillColors="[#BEDF5D, #D6EB9A]"/>
-                    <mx:Button id="saveActionBt" label="SaveAction" click="saveActionBt_clickHandler(event)" width="95" fillAlphas="[1.0, 1.0, 1.0, 1.0]" fillColors="[#BEDF5D, #D6EB9A]"/>
-                    <!--<mx:Button label="LexTest" id="testBt" click="testBt_clickHandler(event)" height="100%" width="95"/>-->    
-                    <mx:Button label="CleanTest" id="testCleanBt" click="testOutputText.text=''" width="95" fillAlphas="[1.0, 1.0, 1.0, 1.0]" fillColors="[#BEDF5D, #D6EB9A]"/>    
+                    <mx:Button id="loadFileBt" label="LoadXMLConfig" click="loadFileBt_clickHandler(event)" fillAlphas="[1.0, 1.0, 1.0, 1.0]" fillColors="[#BEDF5D, #D6EB9A]"/>
+                    <mx:Button id="saveFileBt" label="SaveTableData" click="saveFileBt_clickHandler(event)" fillAlphas="[1.0, 1.0, 1.0, 1.0]" fillColors="[#BEDF5D, #D6EB9A]"/>
+                    <mx:Button id="saveActionBt" label="SaveActionText" click="saveActionBt_clickHandler(event)" fillAlphas="[1.0, 1.0, 1.0, 1.0]" fillColors="[#BEDF5D, #D6EB9A]"/>
+                    <mx:Button label="CleanTest" id="testCleanBt" click="testOutputText.text=''" fillAlphas="[1.0, 1.0, 1.0, 1.0]" fillColors="[#BEDF5D, #D6EB9A]"/>    
                 </mx:HBox>
                 <editor:HighlightEditor id="testInputText" height="85%" width="100%">
                 </editor:HighlightEditor>
@@ -240,7 +144,6 @@
                         <mx:Button label="Thompson" id="nfaBt" click="nfaBt_clickHandler(event)"  width="100%"/>    
                         <mx:Button label="Dfa" id="dfaBt" click="dfaBt_clickHandler(event)"  width="100%"/>    
                         <mx:Button label="MiniDfa" id="minidfaBt" click="minidfaBt_clickHandler(event)"  width="100%"/>    
-                        <mx:Button label="LexDfa" id="lexdfaBt" click="lexdfaBt_clickHandler(event)"  width="100%"/>    
                     </mx:VBox>
                 </mx:HBox>
             </mx:VBox>
