@@ -68,14 +68,17 @@ package org.lala.compilercompile.lr0automata
                     else
                     {
                         /**
-                        * RR冲突的解决方法:
-                        * 在归约产生式体中得到所有终结符的:较好的情况是一个
-                        * (如果有多个,那么一定有一个产生式优先级代表的终结符)[否则产生警告]
+                        * S/R冲突的解决方法:
+                        * 在归约产生式体中得到优先级最高的终结符
                         * 移入终结符是对应的列代表的终结符:与前者比较
                         * 优先级不同:使用优先级高的终结符代表的产生式
                         * 优先级相同:这种情况下结合性也必须相同[否则产生警告],左结合的:归约;右结合的:移入,无结合的:警告
                         **/
                         cell = _table[s.id][sm.id];
+                        if(sm.assoc == 2 || cell.production.assoc == 2)//无结合
+                        {
+                            throw new Error("无结合性,但是需要结合性来解决的S/R冲突:@符号" + sm.text + ' &表达式' + String(cell.production));
+                        }
                         if(sm.preced > cell.production.preced)
                         {
                             cell = new TableCell(TableCell.SHIFT, ns);
@@ -85,7 +88,7 @@ package org.lala.compilercompile.lr0automata
                         {
                             if(sm.assoc != cell.production.assoc)
                             {
-                                throw new Error("优先级相同,结合性不同的S/R冲突.");
+                                throw new Error("优先级相同,结合性不同的S/R冲突:@符号" + sm.text + ' &表达式' + String(cell.production));
                             }
                             else
                             {
@@ -95,10 +98,7 @@ package org.lala.compilercompile.lr0automata
                                     cell = new TableCell(TableCell.SHIFT, ns);
                                     _table[s.id][sm.id] = cell;
                                 }
-                                else if(sm.assoc == 2)//无结合
-                                {
-                                    throw new Error("无结合性,却需要结合性来解决的S/R冲突.");
-                                }
+                                //左结合不用更改表格内容
                             }
                         }
 //                        throw new Error("Shift/Reduce conflict.");

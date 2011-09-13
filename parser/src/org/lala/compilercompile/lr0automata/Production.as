@@ -74,7 +74,16 @@ package org.lala.compilercompile.lr0automata
         {
             _assoc = value;
         }
-
+        
+        public function toString():String
+        {
+            var rText:Vector.<String> = new Vector.<String>;
+            _right.forEach(function(sm:ISymbol, ... args):void
+            {
+                rText.push(sm.text);
+            });
+            return _left.text + ' -> ' + rText.join(' ');
+        }
 
     }
 }
