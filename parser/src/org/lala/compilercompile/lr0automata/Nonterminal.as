@@ -2,6 +2,7 @@ package org.lala.compilercompile.lr0automata
 {
     import org.lala.compilercompile.interfaces.INonTerminal;
     import org.lala.compilercompile.interfaces.IProduction;
+    import org.lala.compilercompile.utils.HTMLEntities;
     
     public class Nonterminal implements INonTerminal
     {
@@ -49,6 +50,11 @@ package org.lala.compilercompile.lr0automata
         public function get text():String
         {
             return _text;
+        }
+        
+        public function get htmlText():String
+        {
+            return HTMLEntities.encode(_text);
         }
         
         public function get id():uint

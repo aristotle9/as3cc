@@ -1,6 +1,8 @@
 package org.lala.compilercompile.lr0automata
 {
     import org.lala.compilercompile.interfaces.ISymbol;
+    import org.lala.compilercompile.utils.HTMLEntities;
+
     /** 终结符专用 **/
     public class Symbol implements ISymbol
     {
@@ -29,6 +31,11 @@ package org.lala.compilercompile.lr0automata
         public function get text():String
         {
             return _text;
+        }
+        
+        public function get htmlText():String
+        {
+            return HTMLEntities.encode(_text);
         }
         
         public function get id():uint

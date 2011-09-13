@@ -76,7 +76,7 @@ package org.lala.compilercompile.lr0automata
         public function toString():String
         {
             var res:String = '(' + production.id + '): ';
-            res += production.left.text;
+            res += production.left.htmlText;
             res += " -&gt; ";
             var a:Array = [];
             production.right.forEach(function(sm:ISymbol, i:uint, ...args):void
@@ -85,7 +85,7 @@ package org.lala.compilercompile.lr0automata
                 {
                     a.push("&bull;");
                 }
-                a.push(sm.text);
+                a.push(sm.htmlText);
             });
             if(position == production.size)
             {
