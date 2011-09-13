@@ -1,0 +1,167 @@
+<as3cc>
+    <lexer>
+        <tokens>
+            <token>
+                <pattern><![CDATA[\*]]></pattern>
+                <action><![CDATA[return '*';]]></action>
+            </token>
+            <token>
+                <pattern><![CDATA[\+]]></pattern>
+                <action><![CDATA[return '+';]]></action>
+            </token>
+            <token>
+                <pattern><![CDATA[\?]]></pattern>
+                <action><![CDATA[return '?';]]></action>
+            </token>
+            <token>
+                <pattern><![CDATA[\|]]></pattern>
+                <action><![CDATA[return '|';]]></action>
+            </token>
+            <token>
+                <pattern><![CDATA[\(]]></pattern>
+                <action><![CDATA[return '(';]]></action>
+            </token>
+            <token>
+                <pattern><![CDATA[\)]]></pattern>
+                <action><![CDATA[return ')';]]></action>
+            </token>
+            <token>
+                <pattern><![CDATA[\[]]></pattern>
+                <action><![CDATA[return '[';]]></action>
+            </token>
+            <token>
+                <pattern><![CDATA[\]]]></pattern>
+                <action><![CDATA[return ']';]]></action>
+            </token>
+            <token>
+                <pattern><![CDATA[\-]]></pattern>
+                <action><![CDATA[return '-';]]></action>
+            </token>
+            <token>
+                <pattern><![CDATA[\^]]></pattern>
+                <action><![CDATA[return '^';]]></action>
+            </token>
+            <token>
+                <pattern><![CDATA[\\0[0-7][0-7]]]></pattern>
+                <action><![CDATA[$$ = String.fromCharCode(parseInt($$.substr(2, 2), 8)); return 'c';]]></action>
+            </token>
+            <token>
+                <pattern><![CDATA[\\x[\da-fA-F][\da-fA-F]]]></pattern>
+                <action><![CDATA[$$ = String.fromCharCode(parseInt($$.substr(2, 2), 16)); return 'c';]]></action>
+            </token>
+            <token>
+                <pattern><![CDATA[\\u[\da-fA-F][\da-fA-F][\da-fA-F][\da-fA-F]]]></pattern>
+                <action><![CDATA[$$ = String.fromCharCode(parseInt($$.substr(2, 4), 16)); return 'c';]]></action>
+            </token>
+            <token>
+                <pattern><![CDATA[\\[dsw]|\.]]></pattern>
+                <action><![CDATA[return 'escc';]]></action>
+            </token>
+            <token>
+                <pattern><![CDATA[\\r]]></pattern>
+                <action><![CDATA[$$ = '\r'; return 'c';]]></action>
+            </token>
+            <token>
+                <pattern><![CDATA[\\n]]></pattern>
+                <action><![CDATA[$$ = '\n'; return 'c';]]></action>
+            </token>
+            <token>
+                <pattern><![CDATA[\\t]]></pattern>
+                <action><![CDATA[$$ = '\t'; return 'c';]]></action>
+            </token>
+            <token>
+                <pattern><![CDATA[\\b]]></pattern>
+                <action><![CDATA[$$ = '\b'; return 'c';]]></action>
+            </token>
+            <token>
+                <pattern><![CDATA[\\f]]></pattern>
+                <action><![CDATA[$$ = '\f'; return 'c';]]></action>
+            </token>
+            <token>
+                <pattern><![CDATA[\\.]]></pattern>
+                <action><![CDATA[$$ = $$.substr(1, 1); return 'c';]]></action>
+            </token>
+            <token>
+                <pattern><![CDATA[.]]></pattern>
+                <action><![CDATA[return 'c';]]></action>
+            </token>
+        </tokens>
+    </lexer>
+    <parser start="R">
+        <operators>
+            <operator assoc="left"><![CDATA[|]]></operator>
+            <operator assoc="left"><![CDATA[escc c cat ( []]></operator>
+            <operator assoc="left"><![CDATA[-]]></operator>
+            <operator assoc="left"><![CDATA[* ? +]]></operator>
+            <operator assoc="left"><![CDATA[) ]]]></operator>
+        </operators>
+        <rule head="R">
+            <rhs>
+                <pattern>R | R</pattern>
+                <action><![CDATA[put('or');]]></action>
+            </rhs>
+            <rhs>
+                <pattern>( R )</pattern>
+                <action><![CDATA[]]></action>
+            </rhs>
+            <rhs>
+                <pattern>R *</pattern>
+                <action><![CDATA[put('star');]]></action>
+            </rhs>
+            <rhs>
+                <pattern>R +</pattern>
+                <action><![CDATA[put('more');]]></action>
+            </rhs>
+            <rhs>
+                <pattern>R ?</pattern>
+                <action><![CDATA[put('ask');]]></action>
+            </rhs>
+            <rhs>
+                <pattern>[ IR ]</pattern>
+                <action><![CDATA[put('include', $2);]]></action>
+            </rhs>
+            <rhs>
+                <pattern>[ ^ IR ]</pattern>
+                <action><![CDATA[put('exclude', $3);]]></action>
+            </rhs>
+            <rhs precedence="cat">
+                <pattern>R R</pattern>
+                <action><![CDATA[put('cat');]]></action>
+            </rhs>
+            <rhs>
+                <pattern>C</pattern>
+                <action><![CDATA[put('single');]]></action>
+            </rhs>
+        </rule>
+        <rule head="IR">
+            <rhs>
+                <pattern>IR c - c</pattern>
+                <action><![CDATA[$$ = $1; $$ ++; put('c',$2); put('c',$4); put('range');]]></action>
+            </rhs>
+            <rhs>
+                <pattern>IR C</pattern>
+                <action><![CDATA[$$ = $1; $$ ++; put('single');]]></action>
+            </rhs>
+            <rhs>
+                <pattern>C</pattern>
+                <action><![CDATA[put('single'); $$ = 1;]]></action>
+            </rhs>
+            <rhs>
+                <pattern>c - c</pattern>
+                <action><![CDATA[put('c',$1); put('c',$3); put('range'); $$ = 1;]]></action>
+            </rhs>
+        </rule>
+        <rule head="C">
+            <rhs>
+<!--                 普通字符和代表单个字符的转义符 \t \r \n -->
+                <pattern>c</pattern>
+                <action><![CDATA[put('c',$1);]]></action>
+            </rhs>
+            <rhs>
+<!--                 代表字符集合的转义字符, \d=[0-9] \s=[ \t\r\n] -->
+                <pattern>escc</pattern>
+                <action><![CDATA[put('escc', $1);]]></action>
+            </rhs>
+        </rule>
+    </parser>
+</as3cc>
