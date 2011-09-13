@@ -15,5 +15,6 @@ package org.lala.lex.interfaces
         function hasExit(s:IState):Boolean;
         function addExit(s:IState):void;
         function removeExit(s:IState):void;
+        function clone():INFA;
     }
 }

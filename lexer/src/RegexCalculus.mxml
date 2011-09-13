@@ -19,6 +19,7 @@
             import org.lala.lex.utils.NFAUtil;
             import org.lala.lex.utils.RegToken;
             import org.lala.lex.utils.RegexUtil;
+            import org.lala.lex.utils.RegexpMachine002;
             import org.lala.lex.utils.parser.RegexParser;
             
             private var lexerGenerator:LexerGenerator;
@@ -39,9 +40,15 @@
 
             protected function nfaBt_clickHandler(event:MouseEvent):void
             {
-                var tokens:Vector.<RegToken> = RegexUtil.lex_with_extends(inputText.text);
-                var rpn:Vector.<RegToken> = RegexUtil.shunting_yard(tokens);
-                var nfa:INFA = RegexUtil.reg_nfa(rpn);
+//                var tokens:Vector.<RegToken> = RegexUtil.lex_with_extends(inputText.text);
+//                var rpn:Vector.<RegToken> = RegexUtil.shunting_yard(tokens);
+//                var nfa:INFA = RegexUtil.reg_nfa(rpn);
+                var parser:RegexParser = new RegexParser;
+                var res:Object = parser.parse(inputText.text); 
+                var regMachine:RegexpMachine002 = new RegexpMachine002();
+                regMachine.code = res.code;
+                var nfa:INFA = regMachine.execute();
+                
                 NFAUtil.reindex_nfa(nfa);
                 log(RegexUtil.nfa_dot(nfa));
             }
@@ -53,9 +60,15 @@
 
             protected function dfaBt_clickHandler(event:MouseEvent):void
             {
-                var tokens:Vector.<RegToken> = RegexUtil.lex_with_extends(inputText.text);
-                var rpn:Vector.<RegToken> = RegexUtil.shunting_yard(tokens);
-                var nfa:INFA = RegexUtil.reg_nfa(rpn);
+//                var tokens:Vector.<RegToken> = RegexUtil.lex_with_extends(inputText.text);
+//                var rpn:Vector.<RegToken> = RegexUtil.shunting_yard(tokens);
+//                var nfa:INFA = RegexUtil.reg_nfa(rpn);
+                var parser:RegexParser = new RegexParser;
+                var res:Object = parser.parse(inputText.text); 
+                var regMachine:RegexpMachine002 = new RegexpMachine002();
+                regMachine.code = res.code;
+                var nfa:INFA = regMachine.execute();
+                
                 NFAUtil.reindex_nfa(nfa);
                 nfa = NFAUtil.subset_construction(nfa);
                 log(RegexUtil.dfa_of_nfa_dot(nfa));
@@ -63,9 +76,15 @@
 
             protected function minidfaBt_clickHandler(event:MouseEvent):void
             {
-                var tokens:Vector.<RegToken> = RegexUtil.lex_with_extends(inputText.text);
-                var rpn:Vector.<RegToken> = RegexUtil.shunting_yard(tokens);
-                var nfa:INFA = RegexUtil.reg_nfa(rpn);
+//                var tokens:Vector.<RegToken> = RegexUtil.lex_with_extends(inputText.text);
+//                var rpn:Vector.<RegToken> = RegexUtil.shunting_yard(tokens);
+//                var nfa:INFA = RegexUtil.reg_nfa(rpn);
+                var parser:RegexParser = new RegexParser;
+                var res:Object = parser.parse(inputText.text); 
+                var regMachine:RegexpMachine002 = new RegexpMachine002();
+                regMachine.code = res.code;
+                var nfa:INFA = regMachine.execute();
+                
                 NFAUtil.reindex_nfa(nfa);
                 nfa = NFAUtil.subset_construction(nfa);
                 nfa = NFAUtil.min_dfa(nfa);
@@ -116,7 +135,7 @@
                 var parser:RegexParser = new RegexParser;
                 var res:Object = parser.parse(inputText.text); 
 //                log(res.tree);
-                log(JSON.encode(res.tree,true));
+                log(JSON.encode(res.code,true));
                 log(JSON.encode(res.error,true));
             }
 

@@ -19,48 +19,63 @@ case 0x5:
     return ')';;
     break;
 case 0x6:
-    return '[';;
+    this.begin('BRACKET'); return '[';;
     break;
 case 0x7:
-    return ']';;
+    return '^';;
     break;
 case 0x8:
     return '-';;
     break;
 case 0x9:
-    return '^';;
+    this.begin('INITIAL'); return ']';;
     break;
 case 0xA:
-    yytext = String.fromCharCode(parseInt(yytext.substr(2, 2), 8)); return 'c';;
+    this.begin('REPEAT'); return '{';;
     break;
 case 0xB:
-    yytext = String.fromCharCode(parseInt(yytext.substr(2, 2), 16)); return 'c';;
+    return ',';;
     break;
 case 0xC:
-    yytext = String.fromCharCode(parseInt(yytext.substr(2, 4), 16)); return 'c';;
+    yytext = parseInt(yytext); return 'd';;
     break;
 case 0xD:
-    return 'escc';;
+    /* skip */;
     break;
 case 0xE:
-    yytext = '\r'; return 'c';;
+    this.begin('INITIAL'); return '}';;
     break;
 case 0xF:
-    yytext = '\n'; return 'c';;
+    yytext = String.fromCharCode(parseInt(yytext.substr(2, 2), 8)); return 'c';;
     break;
 case 0x10:
-    yytext = '\t'; return 'c';;
+    yytext = String.fromCharCode(parseInt(yytext.substr(2, 2), 16)); return 'c';;
     break;
 case 0x11:
-    yytext = '\b'; return 'c';;
+    yytext = String.fromCharCode(parseInt(yytext.substr(2, 4), 16)); return 'c';;
     break;
 case 0x12:
-    yytext = '\f'; return 'c';;
+    return 'escc';;
     break;
 case 0x13:
-    yytext = yytext.substr(1, 1); return 'c';;
+    yytext = '\r'; return 'c';;
     break;
 case 0x14:
+    yytext = '\n'; return 'c';;
+    break;
+case 0x15:
+    yytext = '\t'; return 'c';;
+    break;
+case 0x16:
+    yytext = '\b'; return 'c';;
+    break;
+case 0x17:
+    yytext = '\f'; return 'c';;
+    break;
+case 0x18:
+    yytext = yytext.substr(1, 1); return 'c';;
+    break;
+case 0x19:
     return 'c';;
     break;
 }

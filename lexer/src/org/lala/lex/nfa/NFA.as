@@ -1,5 +1,7 @@
 package org.lala.lex.nfa
 {
+    import flash.utils.Dictionary;
+    
     import org.lala.lex.interfaces.IEdge;
     import org.lala.lex.interfaces.IInputSet;
     import org.lala.lex.interfaces.INFA;
@@ -100,6 +102,39 @@ package org.lala.lex.nfa
         {
             _bottleSize = value;
         }
-
+        
+        public function clone():INFA
+        {
+            var stateMap:Dictionary = new Dictionary;
+            var nfa:INFA = new NFA;
+            
+            states.every(function(s:IState):Boolean
+            {
+                var $s:IState = new State(0);
+                nfa.addState($s);
+                if(hasExit(s))
+                {
+                    nfa.addExit($s);
+                }
+                stateMap[s] = $s;
+                return false;
+            });
+            nfa.entry = stateMap[entry];
+            
+            states.every(function(s:IState):Boolean
+            {
+                var $s:IState = stateMap[s] as IState;
+                s.outEdges.every(function(e:IEdge):Boolean
+                {
+                    var $e:IEdge = $s.addTrans(e.input, stateMap[e.to] as IState);
+                    $e.input.edges.add($e);
+                    return false;
+                });
+                return false;
+            });
+            
+            nfa.inputSet = inputSet;
+            return nfa;
+        }
     }
 }

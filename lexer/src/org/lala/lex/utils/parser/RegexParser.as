@@ -61,8 +61,7 @@ package org.lala.lex.utils.parser
                 act = actionTable[inputTable[token]][state];
                 if(act == 1)
                 {
-//                    return {tree:outputStack.pop(), error:errorInfo};//acc
-                    return {tree:code, error:errorInfo};//acc
+                    return {code:code, error:errorInfo};//acc
                 }
                 else if((act & 1) == 1)//shift
                 {
