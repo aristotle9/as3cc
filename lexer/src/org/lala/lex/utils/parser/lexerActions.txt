@@ -1,0 +1,66 @@
+switch(__findex)
+{
+case 0x0:
+    return '*';;
+    break;
+case 0x1:
+    return '+';;
+    break;
+case 0x2:
+    return '?';;
+    break;
+case 0x3:
+    return '|';;
+    break;
+case 0x4:
+    return '(';;
+    break;
+case 0x5:
+    return ')';;
+    break;
+case 0x6:
+    return '[';;
+    break;
+case 0x7:
+    return ']';;
+    break;
+case 0x8:
+    return '-';;
+    break;
+case 0x9:
+    return '^';;
+    break;
+case 0xA:
+    yytext = String.fromCharCode(parseInt(yytext.substr(2, 2), 8)); return 'c';;
+    break;
+case 0xB:
+    yytext = String.fromCharCode(parseInt(yytext.substr(2, 2), 16)); return 'c';;
+    break;
+case 0xC:
+    yytext = String.fromCharCode(parseInt(yytext.substr(2, 4), 16)); return 'c';;
+    break;
+case 0xD:
+    return 'escc';;
+    break;
+case 0xE:
+    yytext = '\r'; return 'c';;
+    break;
+case 0xF:
+    yytext = '\n'; return 'c';;
+    break;
+case 0x10:
+    yytext = '\t'; return 'c';;
+    break;
+case 0x11:
+    yytext = '\b'; return 'c';;
+    break;
+case 0x12:
+    yytext = '\f'; return 'c';;
+    break;
+case 0x13:
+    yytext = yytext.substr(1, 1); return 'c';;
+    break;
+case 0x14:
+    return 'c';;
+    break;
+}

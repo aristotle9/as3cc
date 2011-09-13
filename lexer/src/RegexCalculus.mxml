@@ -19,22 +19,23 @@
             import org.lala.lex.utils.NFAUtil;
             import org.lala.lex.utils.RegToken;
             import org.lala.lex.utils.RegexUtil;
+            import org.lala.lex.utils.parser.RegexParser;
             
             private var lexerGenerator:LexerGenerator;
-            protected function execBt_clickHandler(event:MouseEvent):void
+/*             protected function execBt_clickHandler(event:MouseEvent):void
             {
                 log(RegexUtil.lex_with_extends(inputText.text));
-            }
+            } */
             
             protected function log(... args):void
             {
                 outputText.text += args.join("") + "\n";
             }
 
-            protected function shuntBt_clickHandler(event:MouseEvent):void
+/*             protected function shuntBt_clickHandler(event:MouseEvent):void
             {
                 log(RegexUtil.shunting_yard(RegexUtil.lex_with_extends(inputText.text)));
-            }
+            } */
 
             protected function nfaBt_clickHandler(event:MouseEvent):void
             {
@@ -110,6 +111,15 @@
                 log(lexerGenerator.dotString);
             }
 
+            protected function compileBt_clickHandler(event:MouseEvent):void
+            {
+                var parser:RegexParser = new RegexParser;
+                var res:Object = parser.parse(inputText.text); 
+//                log(res.tree);
+                log(JSON.encode(res.tree,true));
+                log(JSON.encode(res.error,true));
+            }
+
         ]]>
     </fx:Script>
     <mx:VBox width="100%" height="100%" verticalGap="0">
@@ -144,8 +154,9 @@
                     </mx:TextArea>
                     <mx:VBox height="100%" width="120" verticalAlign="middle">
                         <mx:Button label="Clean" id="clsBt" click="clsBt_clickHandler(event)"  width="100%"/>    
-                        <mx:Button label="Extends" id="execBt" click="execBt_clickHandler(event)"  width="100%"/>    
-                        <mx:Button label="Shunting-yard" id="shuntBt" click="shuntBt_clickHandler(event)"  width="100%"/>    
+                        <!--<mx:Button label="Extends" id="execBt" click="execBt_clickHandler(event)"  width="100%"/>    
+                        <mx:Button label="Shunting-yard" id="shuntBt" click="shuntBt_clickHandler(event)"  width="100%"/>  -->  
+                        <mx:Button label="Compile" id="compileBt" click="compileBt_clickHandler(event)"  width="100%"/>  
                         <mx:Button label="Thompson" id="nfaBt" click="nfaBt_clickHandler(event)"  width="100%"/>    
                         <mx:Button label="Dfa" id="dfaBt" click="dfaBt_clickHandler(event)"  width="100%"/>    
                         <mx:Button label="MiniDfa" id="minidfaBt" click="minidfaBt_clickHandler(event)"  width="100%"/>    
