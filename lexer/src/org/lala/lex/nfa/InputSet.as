@@ -14,7 +14,7 @@ package org.lala.lex.nfa
         
         protected var _uid:uint = 1;
         protected var _list:Vector.<IInput>;
-        protected var _inputs:ISet;
+        protected var _inputs:Vector.<IInput>;
         
         /** 起始状态边:特殊的Input **/
         protected var _inclusives:Object;
@@ -29,12 +29,12 @@ package org.lala.lex.nfa
         {
             _from = from;
             _to = to;
-            _inputs = new Set;
+            _inputs = new Vector.<IInput>;
             _list = new Vector.<IInput>;
             var rg:IInput = new Input(getUid());
             rg.setRange(_from, _to);
             _list.push(rg);
-            _inputs.add(rg);
+            _inputs.push(rg);
             
             _inclusives = {};
             _exclusives = {};
@@ -54,9 +54,12 @@ package org.lala.lex.nfa
         }
         public function every(foo:Function):void
         {
-            return _inputs.every(foo);
+            _inputs.some(function(ipt:IInput,...args):Boolean
+            {
+                return foo(ipt);
+            });
         }
-        public function get inputs():ISet
+        public function get inputs():Vector.<IInput>
         {
             return _inputs;            
         }
@@ -93,7 +96,7 @@ package org.lala.lex.nfa
                 return false;
             });
             _list.splice(i, 0, left);
-            _inputs.add(left);
+            _inputs.push(left);
             return;
         }
         /**
@@ -126,7 +129,7 @@ package org.lala.lex.nfa
                 return false;
             });
             _list.splice(i + 1, 0, right);
-            _inputs.add(right);
+            _inputs.push(right);
             return;
         }
         /**
@@ -218,7 +221,7 @@ package org.lala.lex.nfa
                     var ipt:IInput = new Input(getUid(), src);
                     ipt.setRange(0,0);
                     _inclusives[src] = ipt;
-                    _inputs.add(ipt);
+                    _inputs.push(ipt);
                 }
             });
         }
@@ -232,7 +235,7 @@ package org.lala.lex.nfa
                     var ipt:IInput = new Input(getUid(), src);
                     ipt.setRange(0,0);
                     _exclusives[src] = ipt;
-                    _inputs.add(ipt);
+                    _inputs.push(ipt);
                 }
             });
         }

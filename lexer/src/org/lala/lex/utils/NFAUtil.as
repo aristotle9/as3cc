@@ -239,7 +239,7 @@ package org.lala.lex.utils
                     ste = workStack[i];
                     if(ste.size > 1)
                     {
-                        t.inputSet.inputs.every(function(ipt:IInput):Boolean
+                        t.inputSet.every(function(ipt:IInput):Boolean
                         {
                             table = new Dictionary;
                             ste.every(function(s:IState):Boolean

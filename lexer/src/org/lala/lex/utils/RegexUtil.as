@@ -18,6 +18,7 @@ package org.lala.lex.utils
     import org.lala.lex.nfa.NFA;
     import org.lala.lex.nfa.Set;
     import org.lala.lex.nfa.State;
+    import org.lala.lex.utils.parser.RegexParser;
 
     public class RegexUtil
     {
@@ -313,14 +314,21 @@ package org.lala.lex.utils
             var nfa:INFA;
             var nfas:Array = new Array;
             var inputSet:IInputSet = new InputSet(inputFrom,inputTo);
-            var bottleIndex:uint = 0;
+//            var bottleIndex:uint = 0;
+            var parser:RegexParser = new RegexParser();
+            var regMachine:RegexpMachine002 = new RegexpMachine002(inputSet);
+            
             rules.forEach(function(raw:Object, ... args):void
             {
-                tokens = RegexUtil.lex_with_extends(raw.p[0]);
-                rpn = RegexUtil.shunting_yard(tokens);
-                nfa = RegexUtil.reg_nfa(rpn,inputSet,bottleIndex);
+//                tokens = RegexUtil.lex_with_extends(raw.p[0]);
+//                rpn = RegexUtil.shunting_yard(tokens);
+//                nfa = RegexUtil.reg_nfa(rpn,inputSet,bottleIndex);
+                var compiled:Object = parser.parse(raw.p[0]);
+                regMachine.code = compiled.code;
+                nfa = regMachine.execute();
+                
                 nfas.push(nfa);
-                bottleIndex += nfa.bottleSize;
+//                bottleIndex += nfa.bottleSize;
             });
             //输入集的inputs已经稳定
             if(states === null)
@@ -378,7 +386,7 @@ package org.lala.lex.utils
                 {
                     if(table[s.id] == null)
                     {
-                        table[s.id] = new Array(inputSet.inputs.size);
+                        table[s.id] = new Array(inputSet.inputs.length);
                         table[s.id][0] = s.id;
                     }
                     var row:Array = table[s.id];

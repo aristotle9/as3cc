@@ -186,7 +186,7 @@ package org.lala.lex.utils.parser
                                     throw new Error("已经到达末尾.");
                                 }                    
                             }
-                            throw new Error("意外的字符,line:" + position.join(",col:"));
+                            throw new Error("意外的字符,line:" + position.join(",col:") + 'of ' + __source.substr(__begin,20));
                         }
                         else
                         {

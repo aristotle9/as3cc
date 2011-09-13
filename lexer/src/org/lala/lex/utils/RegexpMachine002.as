@@ -17,6 +17,7 @@ package org.lala.lex.utils
         private var _inputSet:IInputSet;
         private var _stateIndex:uint;
         
+        private var _bottleIndex:uint = 0;
         private var _workStack:Vector.<INFA>;
         private var _codeStack:Vector.<Array>;
         
@@ -251,6 +252,7 @@ package org.lala.lex.utils
             }
             nfaT = _workStack.pop();
             nfaT.inputSet = _inputSet;
+            _bottleIndex += bottleSize;
             nfaT.bottleSize = bottleSize;
             return nfaT;
         }
