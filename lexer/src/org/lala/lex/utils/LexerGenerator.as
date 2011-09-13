@@ -75,5 +75,10 @@ package org.lala.lex.utils
         {
             return RegexUtil.ACTION_FILE(_config);
         }
+        
+        public function get dotString():String
+        {
+            return RegexUtil.nfa_dot(_dfa);
+        }
     }
 }

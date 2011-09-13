@@ -105,6 +105,11 @@
                 viewChanges.selectedIndex = 0;
             }
 
+            protected function lexdfaBt_clickHandler(event:MouseEvent):void
+            {
+                log(lexerGenerator.dotString);
+            }
+
         ]]>
     </fx:Script>
     <mx:VBox width="100%" height="100%" verticalGap="0">
@@ -144,6 +149,7 @@
                         <mx:Button label="Thompson" id="nfaBt" click="nfaBt_clickHandler(event)"  width="100%"/>    
                         <mx:Button label="Dfa" id="dfaBt" click="dfaBt_clickHandler(event)"  width="100%"/>    
                         <mx:Button label="MiniDfa" id="minidfaBt" click="minidfaBt_clickHandler(event)"  width="100%"/>    
+                        <mx:Button label="LexDfa" id="lexdfaBt" click="lexdfaBt_clickHandler(event)"  width="100%"/>    
                     </mx:VBox>
                 </mx:HBox>
             </mx:VBox>
