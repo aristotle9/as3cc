@@ -226,10 +226,11 @@ package org.lala.lex.utils
             {
                 return ste.size != 0;
             });
-            if(workStack.length == 1)
-            {
-                flag = false;
-            }
+            /** 即使只有一个集合,也可能转换到Null集合而出现区分!! **/
+//            if(workStack.length == 1)
+//            {
+//                flag = false;
+//            }
             while(flag)
             {
                 flag = false;
