@@ -9,20 +9,22 @@
             
             import org.lala.ui.editor.commands.DeleteLinesCommand;
             import org.lala.ui.editor.commands.IndentCommand;
+            import org.lala.ui.editor.commands.OpenCommand;
+            import org.lala.ui.editor.commands.SaveCommand;
             import org.lala.ui.editor.commands.UnIndentCommand;
             import org.lala.ui.editor.interfaces.ICommand;
             /** 样式定义 **/
             protected const cssString:String = ".lex_begin,.lex_end,.rule_start,.grammar_begin,.grammar_rule_begin{color:#880000;font-weight:bold;}" +
-                ".dec_head{color:#666600;font-weight:bold;}" +
+                ".dec_head{color:#4F94CD;font-weight:bold;}" +
                 ".name{color:#660066;}" +
                 ".lb,.rb{color: #666600;}" +//<>
                 ".pattern{color:#0068CF;}" +
                 ".comment{color: #008800;}" +
                 ".action{color:#000088;}" +
                 ".code{color:#006666}" +
-                ".grammar_dec_left,.grammar_dec_right,.grammar_dec_nonassoc,.grammar_dec_prec,.grammar_dec_start{color:#666600;font-weight:bold;}" +
+                ".grammar_dec_left,.grammar_dec_right,.grammar_dec_nonassoc,.grammar_dec_prec,.grammar_dec_start{color:#BF3F00;font-weight:bold;}" +
                 ".grammar_id{color:#0068CF;}" +
-                ".grammar_string{color:#660066;}" +
+                ".grammar_string{color:#B400B4;}" +
                 ".grammar_action_body{color:#000088;}";
             /** 样式数据 **/
             protected var codeStyle:StyleSheet;
@@ -108,7 +110,13 @@
                 var cmd:ICommand = null;
                 switch(event.item.label)
                 {
-                    case "^d":
+                    case "openFile":
+                        cmd = new OpenCommand(editor);
+                        break;
+                    case "saveFile":
+                        cmd = new SaveCommand(editor);
+                        break;
+                    case "delLines":
                         cmd = new DeleteLinesCommand(editor);
                         break;
                 }
@@ -125,7 +133,9 @@
     <mx:ButtonBar height="20" itemClick="buttonbar1_itemClickHandler(event)" toolTipField="tip" labelField="label">
         <mx:dataProvider>
             <fx:Array>
-                <fx:Object tip="删除行" label="^d"/>
+                <fx:Object tip="打开文件" label="openFile"/>
+                <fx:Object tip="保存文件" label="saveFile"/>
+                <fx:Object tip="删除行" label="delLines"/>
             </fx:Array>
         </mx:dataProvider>
     </mx:ButtonBar>
