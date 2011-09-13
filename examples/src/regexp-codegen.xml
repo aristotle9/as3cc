@@ -1,5 +1,9 @@
 <as3cc>
     <lexer>
+        <states>
+            <inclusive></inclusive>
+            <exclusive>BRACKET REPEAT</exclusive>
+        </states>
         <tokens>
             <token>
                 <pattern><![CDATA[\*]]></pattern>
@@ -27,61 +31,81 @@
             </token>
             <token>
                 <pattern><![CDATA[\[]]></pattern>
-                <action><![CDATA[return '[';]]></action>
+                <action><![CDATA[this.begin('BRACKET'); return '[';]]></action>
             </token>
-            <token>
-                <pattern><![CDATA[\]]]></pattern>
-                <action><![CDATA[return ']';]]></action>
-            </token>
-            <token>
-                <pattern><![CDATA[\-]]></pattern>
-                <action><![CDATA[return '-';]]></action>
-            </token>
-            <token>
+            <token states="BRACKET">
                 <pattern><![CDATA[\^]]></pattern>
                 <action><![CDATA[return '^';]]></action>
             </token>
+            <token states="BRACKET">
+                <pattern><![CDATA[\-]]></pattern>
+                <action><![CDATA[return '-';]]></action>
+            </token>
+            <token states="BRACKET">
+                <pattern><![CDATA[\]]]></pattern>
+                <action><![CDATA[this.begin('INITIAL'); return ']';]]></action>
+            </token>
             <token>
+                <pattern><![CDATA[\{]]></pattern>
+                <action><![CDATA[this.begin('REPEAT'); return '{';]]></action>
+            </token>
+            <token states="REPEAT">
+                <pattern><![CDATA[,]]></pattern>
+                <action><![CDATA[return ',';]]></action>
+            </token>
+            <token states="REPEAT">
+                <pattern><![CDATA[\d+]]></pattern>
+                <action><![CDATA[$$ = parseInt($$); return 'd';]]></action>
+            </token>
+            <token states="REPEAT">
+                <pattern><![CDATA[[ \t]+]]></pattern>
+                <action><![CDATA[/* skip */]]></action>
+            </token>
+            <token states="REPEAT">
+                <pattern><![CDATA[\}]]></pattern>
+                <action><![CDATA[this.begin('INITIAL'); return '}';]]></action>
+            </token>
+            <token states="INITIAL BRACKET">
                 <pattern><![CDATA[\\0[0-7][0-7]]]></pattern>
                 <action><![CDATA[$$ = String.fromCharCode(parseInt($$.substr(2, 2), 8)); return 'c';]]></action>
             </token>
-            <token>
+            <token states="INITIAL BRACKET">
                 <pattern><![CDATA[\\x[\da-fA-F][\da-fA-F]]]></pattern>
                 <action><![CDATA[$$ = String.fromCharCode(parseInt($$.substr(2, 2), 16)); return 'c';]]></action>
             </token>
-            <token>
+            <token states="INITIAL BRACKET">
                 <pattern><![CDATA[\\u[\da-fA-F][\da-fA-F][\da-fA-F][\da-fA-F]]]></pattern>
                 <action><![CDATA[$$ = String.fromCharCode(parseInt($$.substr(2, 4), 16)); return 'c';]]></action>
             </token>
-            <token>
+            <token states="INITIAL BRACKET">
                 <pattern><![CDATA[\\[dsw]|\.]]></pattern>
                 <action><![CDATA[return 'escc';]]></action>
             </token>
-            <token>
+            <token states="INITIAL BRACKET">
                 <pattern><![CDATA[\\r]]></pattern>
                 <action><![CDATA[$$ = '\r'; return 'c';]]></action>
             </token>
-            <token>
+            <token states="INITIAL BRACKET">
                 <pattern><![CDATA[\\n]]></pattern>
                 <action><![CDATA[$$ = '\n'; return 'c';]]></action>
             </token>
-            <token>
+            <token states="INITIAL BRACKET">
                 <pattern><![CDATA[\\t]]></pattern>
                 <action><![CDATA[$$ = '\t'; return 'c';]]></action>
             </token>
-            <token>
+            <token states="INITIAL BRACKET">
                 <pattern><![CDATA[\\b]]></pattern>
                 <action><![CDATA[$$ = '\b'; return 'c';]]></action>
             </token>
-            <token>
+            <token states="INITIAL BRACKET">
                 <pattern><![CDATA[\\f]]></pattern>
                 <action><![CDATA[$$ = '\f'; return 'c';]]></action>
             </token>
-            <token>
+            <token states="INITIAL BRACKET">
                 <pattern><![CDATA[\\.]]></pattern>
                 <action><![CDATA[$$ = $$.substr(1, 1); return 'c';]]></action>
             </token>
-            <token>
+            <token states="INITIAL BRACKET">
                 <pattern><![CDATA[.]]></pattern>
                 <action><![CDATA[return 'c';]]></action>
             </token>
@@ -90,9 +114,9 @@
     <parser start="R">
         <operators>
             <operator assoc="left"><![CDATA[|]]></operator>
-            <operator assoc="left"><![CDATA[escc c cat ( []]></operator>
+            <operator assoc="left"><![CDATA[escc c cat ( [ }]]></operator>
             <operator assoc="left"><![CDATA[-]]></operator>
-            <operator assoc="left"><![CDATA[* ? +]]></operator>
+            <operator assoc="left"><![CDATA[* ? + {]]></operator>
             <operator assoc="left"><![CDATA[) ]]]></operator>
         </operators>
         <rule head="R">
@@ -102,6 +126,10 @@
             </rhs>
             <rhs>
                 <pattern>( R )</pattern>
+                <action><![CDATA[]]></action>
+            </rhs>
+            <rhs>
+                <pattern>R Rp</pattern>
                 <action><![CDATA[]]></action>
             </rhs>
             <rhs>
@@ -131,6 +159,95 @@
             <rhs>
                 <pattern>C</pattern>
                 <action><![CDATA[put('single');]]></action>
+            </rhs>
+        </rule>
+        <rule head="Rp">
+            <rhs>
+                <pattern>{ d }</pattern>
+                <action><![CDATA[
+                $$ = $2 - 1;
+                while($$ > 0)
+                {
+                    put('dupl');
+                    $$ --;
+                }
+                $$ = $2 - 1;
+                while($$ > 0)
+                {
+                    put('cat');
+                    $$ --;
+                }
+                ]]></action>
+            </rhs>
+            <rhs>
+                <pattern>{ , d }</pattern>
+                <action><![CDATA[
+                put('ask');
+                $$ = $3 - 1;
+                while($$ > 0)
+                {
+                    put('dupl');
+                    $$ --;
+                }
+                $$ = $3 - 1;
+                while($$ > 0)
+                {
+                    put('cat');
+                    $$ --;
+                }
+                ]]></action>
+            </rhs>
+            <rhs>
+                <pattern>{ d , d }</pattern>
+                <action><![CDATA[
+                if($2 > $4)
+                {
+                    $$ = $2;
+                    $2 = $4;
+                    $4 = $$;
+                }
+                $$ = $2 - 1;
+                while($$ > 0)
+                {
+                    put('dupl');
+                    $$ --;
+                }
+                $$ = $4 - $2;
+                if($$ > 0)
+                {
+                    put('dupl');
+                    put('ask');
+                    while($$ > 1)
+                    {
+                        put('dupl');
+                        $$ --;
+                    }
+                }
+                $$ = $4 - 1;
+                while($$ > 0)
+                {
+                    put('cat');
+                    $$ --;
+                }
+                ]]></action>
+            </rhs>
+            <rhs>
+                <pattern>{ d , }</pattern>
+                <action><![CDATA[
+                $$ = $2;
+                while($$ > 0)
+                {
+                    put('dupl');
+                    $$ --;
+                }
+                put('star');
+                $$ = $2;
+                while($$ > 0)
+                {
+                    put('cat');
+                    $$ --;
+                }
+                ]]></action>
             </rhs>
         </rule>
         <rule head="IR">
