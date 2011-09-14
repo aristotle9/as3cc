@@ -37,6 +37,30 @@ package org.lala.lex.utils
             }
             return t;
         }
+        /** DFA重新编号,按照边的id顺序广度遍历,也许可以确定下状态的序号 **/
+        public static function reindex_dfa(t:INFA):INFA
+        {
+            var indexed:Vector.<IState> = new Vector.<IState>();
+            var i:uint = 0;
+            var index:uint = 0;
+            t.entry.id = index ++;
+            indexed.push(t.entry);
+            while(i < t.states.size)
+            {
+                var s:IState = indexed[i ++];
+                t.inputSet.every(function(ipt:IInput):Boolean
+                {
+                    var si:IState = s.trans(ipt);
+                    if(si != null && indexed.indexOf(si) == -1)
+                    {
+                        si.id = index ++;
+                        indexed.push(si);
+                    }
+                    return false;
+                });
+            }
+            return t;   
+        }
         /** e-closure **/
         internal static function e_closure(s:IState):ISet
         {
@@ -369,7 +393,7 @@ package org.lala.lex.utils
                 }
             }
             //重新编号,消除死状态后会打乱序号
-            reindex_nfa(nfa);
+            reindex_dfa(nfa);
             return nfa;
         }
     }
