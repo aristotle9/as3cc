@@ -114,7 +114,7 @@
     <parser start="R">
         <operators>
             <operator assoc="left"><![CDATA[|]]></operator>
-            <operator assoc="left"><![CDATA[escc c cat ( [ }]]></operator>
+            <operator assoc="left"><![CDATA[escc c cat ( []]></operator>
             <operator assoc="left"><![CDATA[-]]></operator>
             <operator assoc="left"><![CDATA[* ? + {]]></operator>
             <operator assoc="left"><![CDATA[) ]]]></operator>
