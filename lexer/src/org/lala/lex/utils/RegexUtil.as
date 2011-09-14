@@ -318,18 +318,31 @@ package org.lala.lex.utils
             var parser:RegexParser = new RegexParser();
             var regMachine:RegexpMachine002 = new RegexpMachine002(inputSet);
             
+            var errorInfo:Array = new Array;
+            
             rules.forEach(function(raw:Object, ... args):void
             {
 //                tokens = RegexUtil.lex_with_extends(raw.p[0]);
 //                rpn = RegexUtil.shunting_yard(tokens);
 //                nfa = RegexUtil.reg_nfa(rpn,inputSet,bottleIndex);
-                var compiled:Object = parser.parse(raw.p[0]);
-                regMachine.code = compiled.code;
-                nfa = regMachine.execute();
-                
-                nfas.push(nfa);
+                try//尽量收集多的错误信息
+                {
+                    var compiled:Object = parser.parse(raw.p[0]);
+                    regMachine.code = compiled.code;
+                    nfa = regMachine.execute();
+                    
+                    nfas.push(nfa);
+                }
+                catch(e:Error)
+                {
+                    errorInfo.push([raw.p[0],e]);
+                }
 //                bottleIndex += nfa.bottleSize;
             });
+            if(errorInfo.length)
+            {
+                throw new Error('词法文件错误:@' + errorInfo.join(",\r"));
+            }
             //输入集的inputs已经稳定
             if(states === null)
             {
