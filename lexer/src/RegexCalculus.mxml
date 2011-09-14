@@ -139,6 +139,13 @@
                 log(JSON.encode(res.error,true));
             }
 
+            protected function saveRawTableBt_clickHandler(event:MouseEvent):void
+            {
+//                var fileRef:FileReference = new FileReference;
+//                fileRef.save(JSON.encode(RegexUtil.COMPRESS2(lexerGenerator.rawTable,lexerGenerator.rawTable[0].length),true,300), "rawTable.txt");
+//                fileRef.save(JSON.encode(lexerGenerator.rawTable,true,300), "rawTable.txt");
+            }
+
         ]]>
     </fx:Script>
     <mx:VBox width="100%" height="100%" verticalGap="0">
@@ -154,11 +161,12 @@
         </mx:HBox>
         <mx:ViewStack id="viewPanels" selectedIndex="{viewChanges.selectedIndex}" width="100%" height="100%" backgroundColor="#FFBF80">
             <mx:VBox width="100%" height="100%">
-                <mx:HBox width="100%" height="25" verticalAlign="middle" horizontalAlign="center">
-                    <mx:Button id="loadFileBt" label="LoadXMLConfig" click="loadFileBt_clickHandler(event)" fillAlphas="[1.0, 1.0, 1.0, 1.0]" fillColors="[#BEDF5D, #D6EB9A]"/>
-                    <mx:Button id="saveFileBt" label="SaveTableData" click="saveFileBt_clickHandler(event)" fillAlphas="[1.0, 1.0, 1.0, 1.0]" fillColors="[#BEDF5D, #D6EB9A]"/>
-                    <mx:Button id="saveActionBt" label="SaveActionText" click="saveActionBt_clickHandler(event)" fillAlphas="[1.0, 1.0, 1.0, 1.0]" fillColors="[#BEDF5D, #D6EB9A]"/>
-                    <mx:Button label="CleanTest" id="testCleanBt" click="testOutputText.text=''" fillAlphas="[1.0, 1.0, 1.0, 1.0]" fillColors="[#BEDF5D, #D6EB9A]"/>    
+                <mx:HBox width="100%" height="30" verticalAlign="middle" horizontalAlign="center">
+                    <mx:Button id="loadFileBt" label="LoadXML" click="loadFileBt_clickHandler(event)" fillAlphas="[1.0, 1.0, 1.0, 1.0]" fillColors="[#BEDF5D, #D6EB9A]"/>
+                    <mx:Button id="saveFileBt" label="SaveTable" click="saveFileBt_clickHandler(event)" fillAlphas="[1.0, 1.0, 1.0, 1.0]" fillColors="[#BEDF5D, #D6EB9A]"/>
+                    <mx:Button id="saveActionBt" label="SaveAction" click="saveActionBt_clickHandler(event)" fillAlphas="[1.0, 1.0, 1.0, 1.0]" fillColors="[#BEDF5D, #D6EB9A]"/>
+                    <mx:Button id="saveRawTableBt" label="saveRaw" click="saveRawTableBt_clickHandler(event)" fillAlphas="[1.0, 1.0, 1.0, 1.0]" fillColors="[#BEDF5D, #D6EB9A]"/>
+                    <mx:Button label="CleanLog" id="testCleanBt" click="testOutputText.text=''" fillAlphas="[1.0, 1.0, 1.0, 1.0]" fillColors="[#BEDF5D, #D6EB9A]"/>    
                 </mx:HBox>
                 <editor:HighlightEditor id="testInputText" height="85%" width="100%">
                 </editor:HighlightEditor>

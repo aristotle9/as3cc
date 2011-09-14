@@ -1,4 +1,4 @@
-switch(__findex)
+switch(_findex)
 {
 case 0x0:
     return '*';;

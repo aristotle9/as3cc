@@ -10,83 +10,84 @@ package test
         public var stateTrans:Array;
         public var inputTrans:Array;
         public var statesInputTable:Object;
+        private const DEADSTATE:uint = uint.MAX_VALUE;
         
-        protected var __start:uint;
-        protected var __oldStart:uint;
-        protected var __tokenName:String;
-        protected var __yytext:*;
-        protected var __yy:Object;
-        protected var __ended:Boolean;
-        protected var __initialInput:Number;
-        protected var __initialState:String;
+        protected var _start:uint;
+        protected var _oldStart:uint;
+        protected var _tokenName:String;
+        protected var _yytext:*;
+        protected var _yy:Object;
+        protected var _ended:Boolean;
+        protected var _initialInput:Number;
+        protected var _initialState:String;
         
-        protected var __line:uint;
-        protected var __col:uint;
-        protected var __advanced:Boolean;
+        protected var _line:uint;
+        protected var _col:uint;
+        protected var _advanced:Boolean;
         
-        protected var __source:String;
+        protected var _source:String;
         
         public function Lexer()
         {
-            var __ba:ByteArray = new DataArrays() as ByteArray;
-            __ba.inflate();
-            stateTrans = __ba.readObject() as Array;
-            finalIndices = __ba.readObject() as Array;
-            inputTrans = __ba.readObject() as Array;
-            statesInputTable = __ba.readObject() as Object;
+            var _ba:ByteArray = new DataArrays() as ByteArray;
+            _ba.inflate();
+            stateTrans = _ba.readObject() as Array;
+            finalIndices = _ba.readObject() as Array;
+            inputTrans = _ba.readObject() as Array;
+            statesInputTable = _ba.readObject() as Object;
         }
         
         public function yyrestart(src:String=null):void
         {
             if(src != null)
             {
-                __source = src;
+                _source = src;
             }
-            __ended = false;
-            __start = 0;
-            __oldStart = 0;
-            __line = 1;
-            __col = 0;
-            __advanced = true;
-            __tokenName = null;
-            __yy = {};
+            _ended = false;
+            _start = 0;
+            _oldStart = 0;
+            _line = 1;
+            _col = 0;
+            _advanced = true;
+            _tokenName = null;
+            _yy = {};
             initialState = "INITIAL";
         }
         
         public function set source(src:String):void
         {
-            __source = src;
+            _source = src;
             yyrestart();
         }
         
         public function get token():String
         {
-            if(__advanced)
+            if(_advanced)
             {
-                __tokenName = next();
-                __advanced = false;
+                _tokenName = next();
+                _advanced = false;
             }
-            return __tokenName;
+            return _tokenName;
         }
         
         public function advance():void
         {
-            __advanced = true;
+            _advanced = true;
         }
         
         public function get startIdx():uint
         {
-            return __oldStart;
+            return _oldStart;
         }
         
         public function get endIdx():uint
         {
-            return __start;
+            return _start;
         }
         
         public function get position():Array
         {
-            return [__line,__col];
+            return [_line,_col];
         }
         
         public function get positionInfo():String
@@ -96,7 +97,7 @@ package test
         
         public function get yytext():*
         {
-            return __yytext;
+            return _yytext;
         }
         
         public function get yyleng():uint
@@ -106,74 +107,74 @@ package test
         
         public function set yytext(value:*):void
         {
-            __yytext = value;
+            _yytext = value;
         }
         
         public function get yy():Object
         {
-            return __yy;
+            return _yy;
         }
 
         public function get tokenName():String
         {
-            return __tokenName;
+            return _tokenName;
         }
         
         protected function next():String
         {
-            var __findex:*;
-            var __nextState:*;
-            var __char:Number;
-            var __begin:uint;
-            var __next:uint;
-            var __ochar:uint;
-            var __curState:uint;
+            var _findex:*;
+            var _nextState:*;
+            var _char:Number;
+            var _begin:uint;
+            var _next:uint;
+            var _ochar:uint;
+            var _curState:uint;
             
             while(true)
             {
-                __findex = null;
-                __nextState = null;
-                __char = 0;
-                __begin = __start;
-                __next = __start;
-                __ochar = uint.MAX_VALUE;
-                __curState = stateTrans[0][__initialInput];
+                _findex = null;
+                _nextState = null;
+                _char = 0;
+                _begin = _start;
+                _next = _start;
+                _ochar = uint.MAX_VALUE;
+                _curState = stateTrans[0][1][_initialInput];
                 while(true)
                 {
-                    __char = __source.charCodeAt(__next);
+                    _char = _source.charCodeAt(_next);
                     /** 计算行,列位置 **/
-                    if(__ochar != uint.MAX_VALUE)
+                    if(_ochar != uint.MAX_VALUE)
                     {
-                        if(__char == 0x0d)//\r
+                        if(_char == 0x0d)//\r
                         {
-                            __col = 0;
-                            __line ++;
+                            _col = 0;
+                            _line ++;
                         }
-                        else if(__char == 0x0a)//\n
+                        else if(_char == 0x0a)//\n
                         {
-                            if(__ochar != 0x0d)// != \r
+                            if(_ochar != 0x0d)// != \r
                             {
-                                __col = 0;
-                                __line ++;
+                                _col = 0;
+                                _line ++;
                             }
                         }
                         else
                         {
-                            __col ++;
+                            _col ++;
                         }
                     }
-                    __ochar = __char;
+                    _ochar = _char;
                     /** 计算行,列位置--结束 **/
-                    __nextState = trans(__curState, __char);
-                    if(__nextState == null)
+                    _nextState = trans(_curState, _char);
+                    if(_nextState == DEADSTATE)
                     {
-                        if(__begin == __next)
+                        if(_begin == _next)
                         {
-                            if(__start == __source.length)
+                            if(_start == _source.length)
                             {
-                                if(__ended == false)
+                                if(_ended == false)
                                 {
-                                    __ended = true;
+                                    _ended = true;
                                     return "<$>";
                                 }
                                 else
@@ -181,56 +182,60 @@ package test
                                     throw new Error("已经到达末尾.");
                                 }                    
                             }
-                            throw new Error("意外的字符,line:" + position.join(",col:") + 'of ' + __source.substr(__begin,20));
+                            throw new Error("意外的字符,line:" + position.join(",col:") + 'of ' + _source.substr(_begin,20));
                         }
                         else
                         {
-                            __findex = finalIndices[__curState];
-                            if(__findex == null)
+                            _findex = finalIndices[_curState];
+                            if(_findex == null)
                             {
                                 throw new Error("出错,line:" + position.join(",col:"));
                             }
-                            __start = __next;
-                            __oldStart = __begin;
-                            __yytext = __source.substring(startIdx, endIdx);
+                            _start = _next;
+                            _oldStart = _begin;
+                            _yytext = _source.substring(startIdx, endIdx);
                             include "lexerActions.txt";
                             break;
                         }
                     }
                     else
                     {
-                        __next += 1;
-                        __curState = __nextState;
+                        _next += 1;
+                        _curState = _nextState;
                     }
                 }
             }
             return "";//这里的值会影响返回值!!
         }
-        protected function trans(curState:uint,char:Number):*
+        protected function trans(curState:uint,char:Number):uint
         {
             if(isNaN(char))
-                return null;
-            return stateTrans[curState][find(char)];
-        }
-        protected function find(code:uint):uint
-        {
-            if(code < inputTrans[0][0] || code > inputTrans[inputTrans.length - 1][1])
-            {
+                return DEADSTATE;
+            if(char < inputTrans[0][0] || char > inputTrans[inputTrans.length - 1][1])
                 throw new Error("输入超出有效范围,line:" + position.join(",col:"));
-            }
+            if(stateTrans[curState][0] == true)
+                return DEADSTATE;
+
+            var ipt:int = find(char,inputTrans);
+            var ipt2:int = find(ipt, stateTrans[curState][2]);
+            return stateTrans[curState][1][ipt2];
+        }
+        
+        protected function find(code:uint,seg:Array):uint
+        {
             var min:uint;
             var max:uint;
             var mid:uint;
             min = 0;
-            max = inputTrans.length - 1;
+            max = seg.length - 1;
             while(true)
             {
                 mid = (min + max) >>> 1;
-                if(inputTrans[mid][0] <= code && inputTrans[mid][1] >= code)
+                if(seg[mid][0] <= code && seg[mid][1] >= code)
                 {
-                    return inputTrans[mid][2];
+                    return seg[mid][2];
                 }
-                else if(inputTrans[mid][0] > code)
+                else if(seg[mid][0] > code)
                 {
                     max = mid - 1;
                 }
@@ -254,7 +259,7 @@ package test
         
         protected function get initialState():String
         {
-            return __initialState;
+            return _initialState;
         }
 
         protected function set initialState(value:String):void
@@ -263,8 +268,8 @@ package test
             {
                 throw new Error("未定义的起始状态:" + value);
             }
-            __initialState = value;
-            __initialInput = statesInputTable[value];
+            _initialState = value;
+            _initialInput = statesInputTable[value];
         }
 
 

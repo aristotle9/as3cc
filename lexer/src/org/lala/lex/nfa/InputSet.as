@@ -150,21 +150,25 @@ package org.lala.lex.nfa
         /**
         * 二分查找
         ***/
-        protected function find(code:uint):uint
+        protected function find(code:uint, seg:*=null,fromField:*='from',toField:*='to'):uint
         {
+            if(seg == null)
+            {
+                seg = _list;
+            }
             var min:uint;
             var max:uint;
             var mid:uint;
             min = 0;
-            max = _list.length - 1;
+            max = seg.length - 1;
             while(true)
             {
                 mid = (min + max) >>> 1;
-                if(_list[mid].from <= code && _list[mid].to >= code)
+                if(seg[mid][fromField] <= code && seg[mid][toField] >= code)
                 {
                     return mid;
                 }
-                else if(_list[mid].from > code)
+                else if(seg[mid][fromField] > code)
                 {
                     max = mid - 1;
                 }
@@ -293,17 +297,17 @@ package org.lala.lex.nfa
             return res;
         }
         /** 起始状态到输入的转换 **/
-        public function statesInputTable():Object
+        public function statesInputTable(fgTableRow:Array):Object
         {
             var res:Object = {};
             var src:String;
             for(src in _inclusives)
             {
-                res[src] = (_inclusives[src] as IInput).compressed;
+                res[src] = find((_inclusives[src] as IInput).compressed, fgTableRow[2], 0, 1);
             }
             for(src in _exclusives)
             {
-                res[src] = (_exclusives[src] as IInput).compressed;
+                res[src] = find((_exclusives[src] as IInput).compressed, fgTableRow[2], 0, 1);
             }
             return res;
         }

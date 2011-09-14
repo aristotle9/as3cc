@@ -14,6 +14,6 @@ package org.lala.lex.interfaces
         function get inputs():Vector.<IInput>;
         function inputTable():Array;
         /** 起始状态到输入的转换 **/
-        function statesInputTable():Object;
+        function statesInputTable(fgTableRow:Array):Object;
     }
 }

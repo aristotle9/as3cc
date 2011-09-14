@@ -411,14 +411,14 @@ package org.lala.lex.utils
             return table;
         }
         /** 起始状态到输入的转换 **/
-        public static function DFA_INPUT_STATES(t:INFA):Object
+        public static function DFA_INPUT_STATES(t:INFA, fgTableRow:Array):Object
         {
             var inputSet:IInputSet = t.inputSet;
-            return inputSet.statesInputTable();
+            return inputSet.statesInputTable(fgTableRow);
         }
         
         /** 输入压缩,使用状态对边的作用来划分 **/
-        public static function INPUT_COMPRESS(table:Array):Array
+        public static function INPUT_COMPRESS(table:Array):Object
         {
             var stateSize:uint = table.length;
             var inputSize:uint;
@@ -528,7 +528,82 @@ package org.lala.lex.utils
                 });
                 i ++;
             }
-            return [newTable,result];
+            return {table: newTable, input: result, colLength: workStack.length};
+        }
+        /**
+        * 再次压缩
+        * 对单个状态s,使用转换函数f(s,n) -> t
+        * 根据t区分n,区分函数 g(n) -> mi where n1,n2 in {n} and f(s,n1) = f(s,n2) = ti,区分函数使用一张连续区间表表示 
+        * h(s,mi) -> ti的函数, h(s,mi) -> ti, where g(ni) = mi and f(s,ni) = ti ,新的转换表函数可以使用一个密集的数组表示,每个元素都不一样;mi 是 0 开始的自然数列
+        * 使用:f(s,n) = h(s,g(n))
+        ***/
+        public static function COMPRESS2(rawTable:Array,colLength:uint):*
+        {
+            var result:Array = new Array;
+            rawTable.forEach(function(row:Array,...args):void
+            {
+//              var row:Array = rawTable[0];
+                var currentSeg:Array;
+                var oldSeg:Array = null;
+                /** ti -> g,mi **/
+                var gTable:Object = {};
+                var mIndex:uint = 0;
+                var i:uint = 0;
+                var ti:*;
+                for(i = 0; i < colLength; i ++)
+                {
+                    /** ti = f(s,i) **/
+                    ti = row[i];
+                    if(gTable[ti] == null)
+                    {
+                        gTable[ti] = {g: [[]], m: mIndex ++};
+                    }
+                    currentSeg = gTable[ti].g.pop();
+                    if(currentSeg == null || currentSeg != oldSeg)
+                    {
+                        if(currentSeg != null)
+                            gTable[ti].g.push(currentSeg);
+                        currentSeg = new Array;
+                    }
+                    oldSeg = currentSeg;
+                    currentSeg.push(i);
+                    gTable[ti].g.push(currentSeg);
+                }
+                var ghFunc:Object = {g: [], h: []};
+                var gi:Object;
+                for(ti in gTable)
+                {
+                    gi = gTable[ti];
+                    ghFunc.h[gi.m] = ti == 'undefined' ? uint.MAX_VALUE : ti;//deadState
+                    ghFunc.g[gi.m] = gi.g;
+                }
+                //merge
+                var ri:Object = [];
+                if(ghFunc.h.length == 1 && ghFunc.h[0] == uint.MAX_VALUE)
+                {
+                    ri[0] = true;
+                }
+                else
+                {
+                    ri[0] = false;
+                    ri[1] = ghFunc.h;
+                    ri[2] = [];
+                    (ghFunc.g as Array).forEach(function(a:Array, i:uint, p:Array):void
+                    {
+                        a.shift();
+                        a.forEach(function(ai:Array,...args):void
+                        {
+                            ri[2].push([ai[0], ai[ai.length - 1], i]);
+                        });
+                    });
+                    (ri[2] as Array).sort(function(a:Array,b:Array):int
+                    {
+                        return a[0] - b[0];
+                    });
+                }
+                result.push(ri);
+            });
+            return result;
         }
         /** 接受状态关联的词法单元序号 **/
         public static function FINAL_STATES(t:INFA):Array
@@ -574,7 +649,7 @@ package org.lala.lex.utils
             {
                 result.push(str);
             };
-            p("switch(__findex)\r\n{");
+            p("switch(_findex)\r\n{");
             (config.lexer.rules as Array).forEach(function(rule:Object, i:uint, parent:Array):void
             {
                 if(String(rule.a).length > 0)
