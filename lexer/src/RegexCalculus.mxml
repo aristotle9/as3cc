@@ -21,7 +21,7 @@
             import org.lala.lex.utils.RegexUtil;
             import org.lala.lex.utils.RegexpMachine002;
             import org.lala.lex.utils.parser.RegexParser;
-            import org.lala.utils.TplRender;
+            import org.lala.lex.utils.TplRender;
             
             private var lexerGenerator:LexerGenerator;
 /*             protected function execBt_clickHandler(event:MouseEvent):void

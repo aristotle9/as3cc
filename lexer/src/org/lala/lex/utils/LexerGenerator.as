@@ -8,7 +8,6 @@ package org.lala.lex.utils
     import org.lala.lex.interfaces.IInput;
     import org.lala.lex.interfaces.INFA;
     import org.lala.lex.nfa.InputSet;
-    import org.lala.utils.TplRender;
 
     public class LexerGenerator
     {
