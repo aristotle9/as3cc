@@ -81,28 +81,26 @@
             }
             protected function toolbarList_itemClickHandler(event:ListEvent):void
             {
-                // TODO Auto-generated method stub
-                switch(event.columnIndex)
-                {
-                    case 0:
-                        generate();
-                        break;
-                    case 1:
-                        saveTable();
-                        break;
-                    case 2:
-                        saveActions();
-                        break;
-                    case 3:
-                        parse();
-                        break;
-                    case 4:
-                        toggleWindow();
-                        break;
-                    default:
-                        vstk.selectedIndex = event.columnIndex - 5;
-                        break;
-                }
+                vstk.selectedIndex = event.columnIndex;
+            }
+            protected function loadXmlBt_clickHandler(event:MouseEvent):void
+            {
+                generate();
+            }
+
+            protected function tableDataBt_clickHandler(event:MouseEvent):void
+            {
+                saveTable();
+            }
+
+            protected function actionTextBt_clickHandler(event:MouseEvent):void
+            {
+                saveActions();
+            }
+
+            protected function parseTestBt_clickHandler(event:MouseEvent):void
+            {
+                parse();
             }
             protected function cell_format(item:Object, column:DataGridColumn):String
             {
@@ -147,10 +145,6 @@
             <mx:dataProvider>
                 <fx:Array>
                     <fx:Object label="生成" icon="@Embed(source='assets/code-32.png')" />
-                    <fx:Object label="转表" icon="@Embed(source='assets/news-32.gif')" />
-                    <fx:Object label="代码" icon="@Embed(source='assets/images-32.gif')" />
-                    <fx:Object label="解析" icon="@Embed(source='assets/alerts-32.png')" />
-                    <fx:Object label="切换" icon="@Embed(source='assets/images-32.gif')" />
                     <fx:Object label="图表" icon="@Embed(source='assets/news-32.gif')" />
                     <fx:Object label="表格" icon="@Embed(source='assets/alerts-32.png')" />
                     <fx:Object label="数组" icon="@Embed(source='assets/docs-32.png')" />
@@ -158,11 +152,19 @@
             </mx:dataProvider>
         </mx:TileList>
         <mx:ViewStack id="vstk" creationPolicy="all" width="100%" height="100%">
-            <mx:Canvas>
+            <mx:VBox>
+                <mx:HBox>
+                    <mx:Button id="loadXmlBt" label="LoadXML" click="loadXmlBt_clickHandler(event)" />
+                    <mx:Button id="tableDataBt" label="TableData" click="tableDataBt_clickHandler(event)" />
+                    <mx:Button id="actionTextBt" label="ActionText" click="actionTextBt_clickHandler(event)" />
+                </mx:HBox>
+            </mx:VBox>
+            <mx:VBox horizontalAlign="center">
+                <!--<mx:Button id="parseTestBt" label="ParseTest" click="parseTestBt_clickHandler(event)" />-->
                 <mx:TextArea id="inputText" width="100%" height="100%"  backgroundColor="#FFFFE1">
                     <mx:text>1 + 2 + 3</mx:text>
                 </mx:TextArea>
-            </mx:Canvas>
+            </mx:VBox>
             <mx:Canvas>
                 <mx:DataGrid id="table" width="100%" height="100%" horizontalScrollPolicy="auto" labelFunction="{cell_format}">
                 </mx:DataGrid>
