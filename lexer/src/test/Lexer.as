@@ -6,11 +6,11 @@ package test
     {
         [Embed(source="lexerData.dat", mimeType="application/octet-stream")]
         protected var DataArrays:Class;
-        public var finalIndices:Array;
-        public var stateTrans:Array;
-        public var inputTrans:Array;
-        public var statesInputTable:Object;
-        private const DEADSTATE:uint = uint.MAX_VALUE;
+        protected var _transTable:Array;
+        protected var _finalTable:Object;
+        protected var _inputTable:Array;
+        protected var _initialTable:Object;
+        protected const DEADSTATE:uint = uint.MAX_VALUE;
         
         protected var _start:uint;
         protected var _oldStart:uint;
@@ -31,10 +31,10 @@ package test
         {
             var _ba:ByteArray = new DataArrays() as ByteArray;
             _ba.inflate();
-            stateTrans = _ba.readObject() as Array;
-            finalIndices = _ba.readObject() as Array;
-            inputTrans = _ba.readObject() as Array;
-            statesInputTable = _ba.readObject() as Object;
+            _transTable = _ba.readObject() as Array;
+            _finalTable = _ba.readObject() as Object;
+            _inputTable = _ba.readObject() as Array;
+            _initialTable = _ba.readObject() as Object;
         }
         
         public function yyrestart(src:String=null):void
@@ -138,7 +138,7 @@ package test
                 _begin = _start;
                 _next = _start;
                 _ochar = uint.MAX_VALUE;
-                _curState = stateTrans[0][1][_initialInput];
+                _curState = _transTable[0][1][_initialInput];
                 while(true)
                 {
                     _char = _source.charCodeAt(_next);
@@ -186,7 +186,7 @@ package test
                         }
                         else
                         {
-                            _findex = finalIndices[_curState];
+                            _findex = _finalTable[_curState];
                             if(_findex == null)
                             {
                                 throw new Error("出错,line:" + position.join(",col:"));
@@ -211,14 +211,14 @@ package test
         {
             if(isNaN(char))
                 return DEADSTATE;
-            if(char < inputTrans[0][0] || char > inputTrans[inputTrans.length - 1][1])
+            if(char < _inputTable[0][0] || char > _inputTable[_inputTable.length - 1][1])
                 throw new Error("输入超出有效范围,line:" + position.join(",col:"));
-            if(stateTrans[curState][0] == true)
+            if(_transTable[curState][0] == true)
                 return DEADSTATE;
 
-            var ipt:int = find(char,inputTrans);
-            var ipt2:int = find(ipt, stateTrans[curState][2]);
-            return stateTrans[curState][1][ipt2];
+            var ipt:int = find(char,_inputTable);
+            var ipt2:int = find(ipt, _transTable[curState][2]);
+            return _transTable[curState][1][ipt2];
         }
         
         protected function find(code:uint,seg:Array):uint
@@ -264,12 +264,12 @@ package test
 
         protected function set initialState(value:String):void
         {
-            if(statesInputTable[value] === undefined)
+            if(_initialTable[value] === undefined)
             {
                 throw new Error("未定义的起始状态:" + value);
             }
             _initialState = value;
-            _initialInput = statesInputTable[value];
+            _initialInput = _initialTable[value];
         }
 
 

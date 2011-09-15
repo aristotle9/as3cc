@@ -1,10 +1,14 @@
 package org.lala.lex.utils
 {
+    import com.maccherone.json.JSON;
+    
+    import flash.net.FileReference;
     import flash.utils.ByteArray;
     
     import org.lala.lex.interfaces.IInput;
     import org.lala.lex.interfaces.INFA;
     import org.lala.lex.nfa.InputSet;
+    import org.lala.utils.TplRender;
 
     public class LexerGenerator
     {
@@ -13,6 +17,11 @@ package org.lala.lex.utils
         
         private var _dfa:INFA;
         private var _byte:ByteArray;
+        
+        private var _finalIndices:Object;
+        private var _stateTrans:Array;
+        private var _inputTrans:Array;
+        private var _statesInputTable:Object;
         
         public function LexerGenerator(conf:Object)
         {
@@ -46,7 +55,7 @@ package org.lala.lex.utils
             var result1:Object = RegexUtil.INPUT_COMPRESS(stateTable);
             var fgTable:Array = RegexUtil.COMPRESS2(result1.table, result1.colLength);
             /** 最终状态到表达式ID的映射 **/
-            var finalStates:Array = RegexUtil.FINAL_STATES(_dfa);
+            var finalStates:Object = RegexUtil.FINAL_STATES(_dfa);
             /** 输入的等价表 **/
             var inputTable:Array = result1.input;
             /** 把输入的等价ID写到输入集上,inputSet.inputTable()才有效 **/
@@ -62,6 +71,11 @@ package org.lala.lex.utils
             var statesInputTable:Object = RegexUtil.DFA_INPUT_STATES(_dfa, fgTable[0]);
             /** 压缩 [压缩的转换表,最终状态表,从字符编码到输入的等价ID的表,起始状态表] **/
             _byte = RegexUtil.TABLES_COMPRESS(fgTable, finalStates, _dfa.inputSet.inputTable(), statesInputTable);
+            
+            _stateTrans = fgTable;
+            _finalIndices = finalStates;
+            _inputTrans = _dfa.inputSet.inputTable();
+            _statesInputTable = statesInputTable;
         }
         
         public function get tableBytes():ByteArray
@@ -77,9 +91,34 @@ package org.lala.lex.utils
             return RegexUtil.ACTION_FILE(_config);
         }
         
+        public function get tableString():String
+        {
+            var ret:Array = [];
+            ret.push('_transTable = ');
+            ret.push(JSON.encode(_stateTrans));
+            ret.push(';_finalTable = ');
+            ret.push(JSON.encode(_finalIndices));
+            ret.push(';_inputTable = ');
+            ret.push(JSON.encode(_inputTrans));
+            ret.push(';_initialTable = ');
+            ret.push(JSON.encode(_statesInputTable));
+            ret.push(';');
+            return ret.join('\r\n');
+        }
+        
         public function get dotString():String
         {
             return RegexUtil.nfa_dot(_dfa);
+        }
+        
+        public function saveLexerFile():void
+        {
+            var fileRef:FileReference = new FileReference;
+            var render:TplRender = new TplRender;
+            var fileData:LexerFile = new LexerFile(_config.lexer);
+            fileData.actions = actionString;
+            fileData.tables = tableString;
+            fileRef.save(render.render(fileData.getRenderObject()), fileData.className + '.as');
         }
     }
 }

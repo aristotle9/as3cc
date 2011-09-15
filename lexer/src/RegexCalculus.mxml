@@ -21,6 +21,7 @@
             import org.lala.lex.utils.RegexUtil;
             import org.lala.lex.utils.RegexpMachine002;
             import org.lala.lex.utils.parser.RegexParser;
+            import org.lala.utils.TplRender;
             
             private var lexerGenerator:LexerGenerator;
 /*             protected function execBt_clickHandler(event:MouseEvent):void
@@ -127,7 +128,8 @@
 
             protected function lexdfaBt_clickHandler(event:MouseEvent):void
             {
-                log(lexerGenerator.dotString);
+                if(lexerGenerator != null)
+                    log(lexerGenerator.dotString);
             }
 
             protected function compileBt_clickHandler(event:MouseEvent):void
@@ -141,9 +143,7 @@
 
             protected function saveRawTableBt_clickHandler(event:MouseEvent):void
             {
-//                var fileRef:FileReference = new FileReference;
-//                fileRef.save(JSON.encode(RegexUtil.COMPRESS2(lexerGenerator.rawTable,lexerGenerator.rawTable[0].length),true,300), "rawTable.txt");
-//                fileRef.save(JSON.encode(lexerGenerator.rawTable,true,300), "rawTable.txt");
+                lexerGenerator.saveLexerFile();
             }
 
         ]]>
@@ -165,7 +165,7 @@
                     <mx:Button id="loadFileBt" label="LoadXML" click="loadFileBt_clickHandler(event)" fillAlphas="[1.0, 1.0, 1.0, 1.0]" fillColors="[#BEDF5D, #D6EB9A]"/>
                     <mx:Button id="saveFileBt" label="SaveTable" click="saveFileBt_clickHandler(event)" fillAlphas="[1.0, 1.0, 1.0, 1.0]" fillColors="[#BEDF5D, #D6EB9A]"/>
                     <mx:Button id="saveActionBt" label="SaveAction" click="saveActionBt_clickHandler(event)" fillAlphas="[1.0, 1.0, 1.0, 1.0]" fillColors="[#BEDF5D, #D6EB9A]"/>
-                    <mx:Button id="saveRawTableBt" label="saveRaw" click="saveRawTableBt_clickHandler(event)" fillAlphas="[1.0, 1.0, 1.0, 1.0]" fillColors="[#BEDF5D, #D6EB9A]"/>
+                    <mx:Button id="saveRawTableBt" label="Render" click="saveRawTableBt_clickHandler(event)" fillAlphas="[1.0, 1.0, 1.0, 1.0]" fillColors="[#BEDF5D, #D6EB9A]"/>
                     <mx:Button label="CleanLog" id="testCleanBt" click="testOutputText.text=''" fillAlphas="[1.0, 1.0, 1.0, 1.0]" fillColors="[#BEDF5D, #D6EB9A]"/>    
                 </mx:HBox>
                 <editor:HighlightEditor id="testInputText" height="85%" width="100%">

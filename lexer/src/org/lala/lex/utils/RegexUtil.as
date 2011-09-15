@@ -606,10 +606,10 @@ package org.lala.lex.utils
             return result;
         }
         /** 接受状态关联的词法单元序号 **/
-        public static function FINAL_STATES(t:INFA):Array
+        public static function FINAL_STATES(t:INFA):Object
         {
-            var finals:Array;
-            finals = new Array(t.states.size);
+            var finals:Object;
+            finals = {};
             t.exits.every(function(s:IState):Boolean
             {
                 finals[s.id] = Number(s.data);
@@ -631,7 +631,7 @@ package org.lala.lex.utils
             return 'stateTrans = [' + table1.join(",\n") + '];\nfinalIndices = [' + finalTable[0].join() + '];\nfinalNames = '+ JSON.encode(finalTable[1]) + ';\ninputTrans = [' + table2.join() + '];';  
         }
         /** 表格数据压缩 **/
-        public static function TABLES_COMPRESS(stateTable:Array,finalTable:Array,inputTable:Array,statesInputTable:Object):ByteArray
+        public static function TABLES_COMPRESS(stateTable:Array,finalTable:Object,inputTable:Array,statesInputTable:Object):ByteArray
         {
             var data:ByteArray = new ByteArray;
             data.writeObject(stateTable);
@@ -670,11 +670,35 @@ package org.lala.lex.utils
             var lexer:XMLList = xml.lexer[0].children();
             var precedence:uint = 1;
             var states:Object = {inclusive:[], exclusive:[]};
+            var decs:Object = {'class':'', imports:[], 'package':''};
+            var codes:Array = [];
+            var initials:Array = [];
+                
             var arr:Array;
             for each(var item:XML in lexer) 
             {
                 switch(String(item.name()))
                 {
+                    case 'declares':
+                        if(String(item.className))
+                        {
+                            decs['class'] = String(item.className);
+                        }
+                        if(String(item['package']))
+                        {
+                            decs['package'] = String(item['package']);
+                        }
+                        if(String(item['imports']))
+                        {
+                            decs['imports'] = String(item['imports']).split(/\s+/);
+                        }
+                        break;
+                    case 'code':
+                        codes.push(String(item));
+                        break;
+                    case 'initial':
+                        initials.push(String(item));
+                        break;
                     case "tokens":
                         for each(var it:XML in item.children())
                         {
@@ -713,7 +737,7 @@ package org.lala.lex.utils
                         break;
                 }
             }
-            return {lexer:{rules:rules, states: states}};
+            return {lexer:{rules:rules, states: states, decs:decs, codes:codes, initials:initials}};
         }
         /** 转义正则表达式 **/
         public static function esc(src:String):String
