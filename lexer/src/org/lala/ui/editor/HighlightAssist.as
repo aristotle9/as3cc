@@ -4,10 +4,10 @@ package org.lala.ui.editor
     {
         private static var _instance:HighlightAssist;
         
-        private var _lexer:Lexer;
+        private var _lexer:HighlightLexer;
         public function HighlightAssist()
         {
-            _lexer = new Lexer;
+            _lexer = new HighlightLexer;
         }
         public function lexInfo(src:String):Array
         {
