@@ -1,448 +1,502 @@
 <as3cc>
-<lexer>
-    <states>
-        <inclusive>GRAMMAR_RULE</inclusive>
-        <exclusive>DEC DEC_COND RULE RULE_COND RULE_SPACE RULE_PATTERN RULE_TRIAL RULE_INDENT GRAMMAR_ACTION</exclusive>
-    </states>
-    <tokens>
-<!--         语法声明块 -->
-        <token>
-            <pattern><![CDATA[%left]]></pattern>
-            <action><![CDATA[return 'grammar_dec_left';]]></action>
-        </token>
-        <token>
-            <pattern><![CDATA[%right]]></pattern>
-            <action><![CDATA[return 'grammar_dec_right';]]></action>
-        </token>
-        <token>
-            <pattern><![CDATA[%nonassoc]]></pattern>
-            <action><![CDATA[return 'grammar_dec_nonassoc';]]></action>
-        </token>
-        <token>
-            <pattern><![CDATA[%start]]></pattern>
-            <action><![CDATA[return 'grammar_dec_start';]]></action>
-        </token>
-        <token>
-            <pattern><![CDATA[%%]]></pattern>
-            <action><![CDATA[this.begin("GRAMMAR_RULE"); return 'grammar_rule_begin';]]></action>
-        </token>
-        <token>
-            <pattern><![CDATA[[a-zA-Z][\w_\-]*]]></pattern>
-            <action><![CDATA[return 'grammar_id';]]></action>
-        </token>
-        <token>
-            <pattern><![CDATA["[^"]+"|'[^']+']]></pattern>
-            <action><![CDATA[$$ = $$.substr(1, yyleng - 2); return 'grammar_string';]]></action>
-        </token>
-<!--         语法规则块 -->
-        <token states="GRAMMAR_RULE">
-            <pattern><![CDATA[%prec]]></pattern>
-            <action><![CDATA[return 'grammar_dec_prec';]]></action>
-        </token>
-        <token states="GRAMMAR_RULE">
-            <pattern><![CDATA[:]]></pattern>
-            <action><![CDATA[return ':';]]></action>
-        </token>
-        <token states="GRAMMAR_RULE">
-            <pattern><![CDATA[;]]></pattern>
-            <action><![CDATA[return ';';]]></action>
-        </token>
-        <token states="GRAMMAR_RULE">
-            <pattern><![CDATA[\|]]></pattern>
-            <action><![CDATA[return '|';]]></action>
-        </token>
-        <token states="GRAMMAR_RULE">
-            <pattern><![CDATA[\{]]></pattern>
-            <action><![CDATA[yy.depth = 0; this.begin("GRAMMAR_ACTION"); return '{';]]></action>
-        </token>
-<!--         语法动作块 -->
-        <token states="GRAMMAR_ACTION">
-            <pattern><![CDATA[\{]]></pattern>
-            <action><![CDATA[yy.depth ++; return '{';]]></action>
-        </token>
-        <token states="GRAMMAR_ACTION">
-            <pattern><![CDATA[\}]]></pattern>
-            <action><![CDATA[yy.depth == 0 ? this.begin('GRAMMAR_RULE') : yy.depth --; return '}';]]></action>
-        </token>
-        <token states="GRAMMAR_ACTION">
-            <pattern><![CDATA[[^\{\}]+]]></pattern>
-            <action><![CDATA[return 'grammar_action_body';]]></action>
-        </token>
-<!--         起始块 -->
-        <token>
-            <pattern><![CDATA[%lex]]></pattern>
-            <action><![CDATA[this.begin("DEC"); return 'lex_begin';]]></action>
-        </token>
-        <token>
-            <pattern><![CDATA[\s+]]></pattern>
-        </token>
-        <token states="DEC">
-            <pattern><![CDATA[%initial]]></pattern>
-            <action><![CDATA[this.begin("DEC_COND"); return 'dec_initial';]]></action>
-        </token>
-        <token states="DEC">
-            <pattern><![CDATA[%s]]></pattern>
-            <action><![CDATA[this.begin("DEC_COND"); return 'dec_inc';]]></action>
-        </token>
-        <token states="DEC">
-            <pattern><![CDATA[%x]]></pattern>
-            <action><![CDATA[this.begin("DEC_COND"); return 'dec_exc';]]></action>
-        </token>
-        <token states="DEC">
-            <pattern><![CDATA[%package]]></pattern>
-            <action><![CDATA[this.begin("DEC_COND"); return 'dec_package';]]></action>
-        </token>
-        <token states="DEC">
-            <pattern><![CDATA[%import]]></pattern>
-            <action><![CDATA[this.begin("DEC_COND"); return 'dec_import';]]></action>
-        </token>
-        <token states="DEC_COND RULE_COND">
-            <pattern><![CDATA[[a-zA-Z_][\w_\-\.\*]*]]></pattern>
-            <action><![CDATA[return 'name';]]></action>
-        </token>
-        <token states="RULE_COND">
-            <pattern><![CDATA[\*]]></pattern>
-            <action><![CDATA[return 'name';]]></action>
-        </token>
-        <token states="DEC DEC_COND RULE RULE_COND">
-            <pattern><![CDATA[[ \t]+]]></pattern>
-            <action><![CDATA[/* skip */]]></action>
-        </token>
-        <token states="DEC DEC_COND">
-            <pattern><![CDATA[\r|\n|\r\n]]></pattern>
-            <action><![CDATA[this.begin('DEC');]]></action>
-        </token>
-        <token states="*">
-            <pattern><![CDATA[/\*([^\*]+\*|\*)([^\*/][^\*]*\*|\*)*/]]></pattern>
-        </token>
-        <token states="DEC">
-            <pattern><![CDATA[%%]]></pattern>
-            <action><![CDATA[this.begin('RULE'); return 'rule_start';]]></action>
-        </token>
-<!--         词法规则块 -->
-        <token states="RULE">
-            <pattern><![CDATA[/lex]]></pattern>
-            <action><![CDATA[this.begin('INITIAL'); return 'lex_end';]]></action>
-        </token>
-        <token states="RULE">
-            <pattern><![CDATA[<]]></pattern>
-            <action><![CDATA[this.begin('RULE_COND'); return '<';]]></action>
-        </token>
-        <token states="RULE_COND">
-            <pattern><![CDATA[>]]></pattern>
-            <action><![CDATA[this.begin('RULE_PATTERN'); return '>';]]></action>
-        </token>
-        <token states="RULE">
-            <pattern><![CDATA[<<EOF>>]]></pattern>
-            <action><![CDATA[this.begin('RULE_SPACE'); return 'pattern';]]></action>
-        </token>
-        <token states="RULE RULE_PATTERN">
-            <pattern><![CDATA['([^'\\]|\\.)*'|"([^"\\]|\\.)*"]]></pattern>
-            <action><![CDATA[this.begin('RULE_SPACE'); $$ = $$.substr(1, $$.length - 2); $$ = $$.replace(/\\(.)/g,"$1"); $$ = $$.replace(/[\\\*\|\?\+\[\]\(\)\^\.\-\{\}]/g,"\\$&"); return 'pattern';]]></action>
-        </token>
-        <token states="RULE">
-            <pattern><![CDATA[([^\[\\\<\s]|\\[^\r\n]|\[([^\\\]\r\n]|\\[^\r\n])*\])([^\s\[\\]|\\[^\r\n]|\[([^\\\]\r\n]|\\[^\r\n])*\])*]]></pattern>
-            <action><![CDATA[/**begin without < **/this.begin('RULE_SPACE'); return 'pattern';]]></action>
-        </token>
-        <token states="RULE_PATTERN">
-            <pattern><![CDATA[([^\s\[\\]|\\[^\r\n]|\[([^\\\]\r\n]|\\[^\r\n])*\])+]]></pattern>
-            <action><![CDATA[this.begin('RULE_SPACE'); return 'pattern';]]></action>
-        </token>
-        <token states="RULE_SPACE">
-            <pattern><![CDATA[[ \t]+]]></pattern>
-            <action><![CDATA[this.begin('RULE_INDENT');]]></action>
-        </token>
-        <token states="RULE_TRIAL">
-            <pattern><![CDATA[[ \t]+]]></pattern>
-            <action><![CDATA[/** skip **/]]></action>
-        </token>
-        <token states="RULE RULE_SPACE RULE_INDENT RULE_TRIAL">
-            <pattern><![CDATA[\r|\n|\r\n]]></pattern>
-            <action><![CDATA[this.begin('RULE');]]></action>
-        </token>
-        <token states="RULE_INDENT">
-            <pattern><![CDATA[\{[^}\r\n]*\}]]></pattern>
-            <action><![CDATA[this.begin('RULE_TRIAL'); $$ = $$.substr(1, $$.length - 2); return 'action1';]]></action>
-        </token>
-        <token states="RULE_INDENT">
-            <pattern><![CDATA[%\{([^}"']|%+[^}%'"]|"([^\\"]|\\[^\r\n])*"|%+"([^\\"]|\\[^\r\n])*"|'([^\\']|\\[^\r\n])*'|%+'([^\\']|\\[^\r\n])*')*%+}]]></pattern>
-            <action><![CDATA[/* support %} in literal string, but in comment is not support yet */this.begin('RULE_TRIAL'); $$ = $$.substr(2, $$.length - 4); return 'action2';]]></action>
-        </token>
-        <token states="RULE_INDENT">
-            <pattern><![CDATA[[^\r\n]+]]></pattern>
-            <action><![CDATA[this.begin('RULE_TRIAL'); return 'action3';]]></action>
-        </token>
-    </tokens>
-</lexer>
-<parser start="Config">
-    <operators>
-        <operator assoc="left"><![CDATA[{ }]]></operator>
-    </operators>
-    <rule head="Config">
-        <rhs>
-            <pattern>Decs grammar_rule_begin GrammarRules</pattern>
-            <action><![CDATA[$$ = {decs:$1,rules:$3};]]></action>
-        </rhs>
-    </rule>
-    <rule head="Decs">
-        <rhs>
-            <pattern>Decs LexDec</pattern>
-            <action><![CDATA[$$ = $1; $$.lex.push($2);]]></action>
-        </rhs>
-        <rhs>
-            <pattern>Decs PrecedenceDec</pattern>
-            <action><![CDATA[$$ = $1; $$.operator.push($2);]]></action>
-        </rhs>
-        <rhs>
-            <pattern>Decs StartDec</pattern>
-            <action><![CDATA[$$ = $1; $$.start = $2;]]></action>
-        </rhs>
-        <rhs>
-            <pattern></pattern>
-            <action><![CDATA[$$ = {lex:[],start:null,operator:[]};]]></action>
-        </rhs>
-    </rule>
-    <rule head="StartDec">
-        <rhs>
-            <pattern>grammar_dec_start grammar_id</pattern>
-            <action><![CDATA[$$ = $2;]]></action>
-        </rhs>
-    </rule>
-    <rule head="PrecedenceDec">
-        <rhs>
-            <pattern>Assoc Tokens</pattern>
-            <action><![CDATA[$$ = [$1,$2];]]></action>
-        </rhs>
-    </rule>
-    <rule head="Tokens">
-        <rhs>
-            <pattern>Tokens Symbol</pattern>
-            <action><![CDATA[$$ = $1; $$.push($2);]]></action>
-        </rhs>
-        <rhs>
-            <pattern>Symbol</pattern>
-            <action><![CDATA[$$ = [$1];]]></action>
-        </rhs>
-    </rule>
-    <rule head="Symbol">
-        <rhs>
-            <pattern>grammar_id</pattern>
-            <action><![CDATA[]]></action>
-        </rhs>
-        <rhs>
-            <pattern>grammar_string</pattern>
-            <action><![CDATA[]]></action>
-        </rhs>
-    </rule>
-    <rule head="Assoc">
-        <rhs>
-            <pattern>grammar_dec_left</pattern>
-            <action><![CDATA[$$ = 'left';]]></action>
-        </rhs>
-        <rhs>
-            <pattern>grammar_dec_right</pattern>
-            <action><![CDATA[$$ = 'right';]]></action>
-        </rhs>
-        <rhs>
-            <pattern>grammar_dec_nonassoc</pattern>
-            <action><![CDATA[$$ = 'nonassoc';]]></action>
-        </rhs>
-    </rule>
-    <rule head="GrammarRules">
-        <rhs>
-            <pattern>GrammarRules GrammarRule</pattern>
-            <action><![CDATA[$$ = $1; $$.push($2);]]></action>
-        </rhs>
-        <rhs>
-            <pattern>GrammarRule</pattern>
-            <action><![CDATA[$$ = [$1];]]></action>
-        </rhs>
-    </rule>
-    <rule head="GrammarRule">
-        <rhs>
-            <pattern><![CDATA[grammar_id : HandleActions ;]]></pattern>
-            <action><![CDATA[$$ = {head:$1,bodies:$3};]]></action>
-        </rhs>
-    </rule>
-    <rule head="HandleActions">
-        <rhs>
-            <pattern><![CDATA[HandleActions | HandleAction]]></pattern>
-            <action><![CDATA[$$ = $1; $$.push($3);]]></action>
-        </rhs>
-        <rhs>
-            <pattern><![CDATA[HandleAction]]></pattern>
-            <action><![CDATA[$$ = [$1];]]></action>
-        </rhs>
-    </rule>
-    <rule head="HandleAction">
-        <rhs>
-            <pattern><![CDATA[Handle Prec Action]]></pattern>
-            <action><![CDATA[$$ = {p:$1,prec:$2,a:$3};]]></action>
-        </rhs>
-        <rhs>
-            <pattern><![CDATA[Handle Action]]></pattern>
-            <action><![CDATA[$$ = {p:$1,a:$2};]]></action>
-        </rhs>
-    </rule>
-    <rule head="Handle">
-        <rhs>
-            <pattern><![CDATA[Tokens]]></pattern>
-            <action><![CDATA[]]></action>
-        </rhs>
-        <rhs>
-            <pattern><![CDATA[]]></pattern>
-            <action><![CDATA[$$ = [];]]></action>
-        </rhs>
-    </rule>
-    <rule head="Prec">
-        <rhs>
-            <pattern><![CDATA[grammar_dec_prec Symbol]]></pattern>
-            <action><![CDATA[$$ = $2;]]></action>
-        </rhs>
-    </rule>
-    <rule head="Action">
-        <rhs>
-            <pattern><![CDATA[{ ActionBody }]]></pattern>
-            <action><![CDATA[$$ = $2;]]></action>
-        </rhs>
-        <rhs>
-            <pattern><![CDATA[]]></pattern>
-            <action><![CDATA[$$ = "";]]></action>
-        </rhs>
-    </rule>
-    <rule head="ActionBody">
-        <rhs>
-            <pattern><![CDATA[ActionBody { ActionBody } ActionBody]]></pattern>
-            <action><![CDATA[$$ = $1 + $2 + $3 + $4 + $5;]]></action>
-        </rhs>
-        <rhs>
-            <pattern><![CDATA[grammar_action_body]]></pattern>
-            <action><![CDATA[]]></action>
-        </rhs>
-        <rhs>
-            <pattern><![CDATA[]]></pattern>
-            <action><![CDATA[$$ = "";]]></action>
-        </rhs>
-    </rule>
-    <rule head="LexDec">
-        <rhs>
-            <pattern>lex_begin StateDecs rule_start Rules lex_end</pattern>
-            <action><![CDATA[
-            $$ = {rules:$4, states:{inclusive:[],exclusive:[]}};
+    <lexer>
+        <declares>
+            <package>org.lala.as3cc</package>
+            <className>Lexer</className>
+            <imports><![CDATA[]]>
+            </imports>
+        </declares>
+        <code></code>
+        <initial></initial>
+        <states>
+            <inclusive>GRAMMAR_RULE</inclusive>
+            <exclusive>DEC DEC_COND RULE RULE_COND RULE_SPACE
+                RULE_PATTERN RULE_TRIAL RULE_INDENT GRAMMAR_ACTION
+                DEC_CODE</exclusive>
+        </states>
+        <tokens>
+            <!-- 语法声明块 -->
+            <token>
+                <pattern><![CDATA[%left]]></pattern>
+                <action><![CDATA[return 'grammar_dec_left';]]></action>
+            </token>
+            <token>
+                <pattern><![CDATA[%right]]></pattern>
+                <action><![CDATA[return 'grammar_dec_right';]]></action>
+            </token>
+            <token>
+                <pattern><![CDATA[%nonassoc]]></pattern>
+                <action><![CDATA[return 'grammar_dec_nonassoc';]]></action>
+            </token>
+            <token>
+                <pattern><![CDATA[%start]]></pattern>
+                <action><![CDATA[return 'grammar_dec_start';]]></action>
+            </token>
+            <token>
+                <pattern><![CDATA[%%]]></pattern>
+                <action><![CDATA[this.begin("GRAMMAR_RULE"); return 'grammar_rule_begin';]]></action>
+            </token>
+            <token>
+                <pattern><![CDATA[[a-zA-Z][\w_\-]*]]></pattern>
+                <action><![CDATA[return 'grammar_id';]]></action>
+            </token>
+            <token>
+                <pattern><![CDATA["[^"]+"|'[^']+']]></pattern>
+                <action><![CDATA[$$ = $$.substr(1, yyleng - 2); return 'grammar_string';]]></action>
+            </token>
+            <!-- 语法规则块 -->
+            <token states="GRAMMAR_RULE">
+                <pattern><![CDATA[%prec]]></pattern>
+                <action><![CDATA[return 'grammar_dec_prec';]]></action>
+            </token>
+            <token states="GRAMMAR_RULE">
+                <pattern><![CDATA[:]]></pattern>
+                <action><![CDATA[return ':';]]></action>
+            </token>
+            <token states="GRAMMAR_RULE">
+                <pattern><![CDATA[;]]></pattern>
+                <action><![CDATA[return ';';]]></action>
+            </token>
+            <token states="GRAMMAR_RULE">
+                <pattern><![CDATA[\|]]></pattern>
+                <action><![CDATA[return '|';]]></action>
+            </token>
+            <token states="GRAMMAR_RULE">
+                <pattern><![CDATA[\{]]></pattern>
+                <action><![CDATA[yy.depth = 0; this.begin("GRAMMAR_ACTION"); return '{';]]></action>
+            </token>
+            <!-- 语法动作块 -->
+            <token states="GRAMMAR_ACTION">
+                <pattern><![CDATA[\{]]></pattern>
+                <action><![CDATA[yy.depth ++; return '{';]]></action>
+            </token>
+            <token states="GRAMMAR_ACTION">
+                <pattern><![CDATA[\}]]></pattern>
+                <action><![CDATA[yy.depth == 0 ? this.begin('GRAMMAR_RULE') : yy.depth --; return '}';]]></action>
+            </token>
+            <token states="GRAMMAR_ACTION">
+                <pattern><![CDATA[[^\{\}]+]]></pattern>
+                <action><![CDATA[return 'grammar_action_body';]]></action>
+            </token>
+            <!-- 起始块 -->
+            <token>
+                <pattern><![CDATA[%lex]]></pattern>
+                <action><![CDATA[this.begin("DEC"); return 'lex_begin';]]></action>
+            </token>
+            <token>
+                <pattern><![CDATA[\s+]]></pattern>
+            </token>
+            <token states="DEC">
+                <pattern><![CDATA[%initial]]></pattern>
+                <action><![CDATA[this.begin("DEC_COND"); return 'dec_initial';]]></action>
+            </token>
+            <token states="DEC">
+                <pattern><![CDATA[%s]]></pattern>
+                <action><![CDATA[this.begin("DEC_COND"); return 'dec_inc';]]></action>
+            </token>
+            <token states="DEC">
+                <pattern><![CDATA[%x]]></pattern>
+                <action><![CDATA[this.begin("DEC_COND"); return 'dec_exc';]]></action>
+            </token>
+            <token states="DEC">
+                <pattern><![CDATA[%package]]></pattern>
+                <action><![CDATA[this.begin("DEC_COND"); return 'dec_package';]]></action>
+            </token>
+            <token states="DEC">
+                <pattern><![CDATA[%class]]></pattern>
+                <action><![CDATA[this.begin("DEC_COND"); return 'dec_class';]]></action>
+            </token>
+            <token states="DEC">
+                <pattern><![CDATA[%import]]></pattern>
+                <action><![CDATA[this.begin("DEC_COND"); return 'dec_import';]]></action>
+            </token>
+            <token states="DEC_COND RULE_COND">
+                <pattern><![CDATA[[a-zA-Z_][\w_\-\.\*]*]]></pattern>
+                <action><![CDATA[return 'name';]]></action>
+            </token>
+            <token states="DEC DEC_COND">
+                <pattern><![CDATA[%\{]]></pattern>
+                <action><![CDATA[this.begin('DEC_CODE');]]></action>
+            </token>
+            <token states="DEC_CODE">
+                <pattern><![CDATA[([^%]|%+[^%}])*%+}]]></pattern>
+                <action><![CDATA[this.begin('DEC'); $$ = $$.substr(0, $$.length - 2); return 'lex_code';]]></action>
+            </token>
+            <token states="RULE_COND">
+                <pattern><![CDATA[\*]]></pattern>
+                <action><![CDATA[return 'name';]]></action>
+            </token>
+            <token states="DEC DEC_COND RULE RULE_COND">
+                <pattern><![CDATA[[ \t]+]]></pattern>
+                <action><![CDATA[/* skip */]]></action>
+            </token>
+            <token states="DEC DEC_COND">
+                <pattern><![CDATA[\r|\n|\r\n]]></pattern>
+                <action><![CDATA[this.begin('DEC');]]></action>
+            </token>
+            <token states="*">
+                <pattern><![CDATA[/\*([^\*]+\*|\*)([^\*/][^\*]*\*|\*)*/]]></pattern>
+            </token>
+            <token states="DEC">
+                <pattern><![CDATA[%%]]></pattern>
+                <action><![CDATA[this.begin('RULE'); return 'rule_start';]]></action>
+            </token>
+            <!-- 词法规则块 -->
+            <token states="RULE">
+                <pattern><![CDATA[/lex]]></pattern>
+                <action><![CDATA[this.begin('INITIAL'); return 'lex_end';]]></action>
+            </token>
+            <token states="RULE">
+                <pattern><![CDATA[<]]></pattern>
+                <action><![CDATA[this.begin('RULE_COND'); return '<';]]></action>
+            </token>
+            <token states="RULE_COND">
+                <pattern><![CDATA[>]]></pattern>
+                <action><![CDATA[this.begin('RULE_PATTERN'); return '>';]]></action>
+            </token>
+            <token states="RULE">
+                <pattern><![CDATA[<<EOF>>]]></pattern>
+                <action><![CDATA[this.begin('RULE_SPACE'); return 'pattern';]]></action>
+            </token>
+            <token states="RULE RULE_PATTERN">
+                <pattern><![CDATA['([^'\\]|\\.)*'|"([^"\\]|\\.)*"]]></pattern>
+                <action><![CDATA[this.begin('RULE_SPACE'); $$ = $$.substr(1, $$.length - 2); $$ = $$.replace(/\\(.)/g,"$1"); $$ = $$.replace(/[\\\*\|\?\+\[\]\(\)\^\.\-\{\}]/g,"\\$&"); return 'pattern';]]></action>
+            </token>
+            <token states="RULE">
+                <pattern><![CDATA[([^\[\\\<\s]|\\[^\r\n]|\[([^\\\]\r\n]|\\[^\r\n])*\])([^\s\[\\]|\\[^\r\n]|\[([^\\\]\r\n]|\\[^\r\n])*\])*]]></pattern>
+                <action><![CDATA[/**begin without < **/this.begin('RULE_SPACE'); return 'pattern';]]></action>
+            </token>
+            <token states="RULE_PATTERN">
+                <pattern><![CDATA[([^\s\[\\]|\\[^\r\n]|\[([^\\\]\r\n]|\\[^\r\n])*\])+]]></pattern>
+                <action><![CDATA[this.begin('RULE_SPACE'); return 'pattern';]]></action>
+            </token>
+            <token states="RULE_SPACE">
+                <pattern><![CDATA[[ \t]+]]></pattern>
+                <action><![CDATA[this.begin('RULE_INDENT');]]></action>
+            </token>
+            <token states="RULE_TRIAL">
+                <pattern><![CDATA[[ \t]+]]></pattern>
+                <action><![CDATA[/** skip **/]]></action>
+            </token>
+            <token states="RULE RULE_SPACE RULE_INDENT RULE_TRIAL">
+                <pattern><![CDATA[\r|\n|\r\n]]></pattern>
+                <action><![CDATA[this.begin('RULE');]]></action>
+            </token>
+            <token states="RULE_INDENT">
+                <pattern><![CDATA[\{[^}\r\n]*\}]]></pattern>
+                <action><![CDATA[this.begin('RULE_TRIAL'); $$ = $$.substr(1, $$.length - 2); return 'action1';]]></action>
+            </token>
+            <token states="RULE_INDENT">
+                <pattern><![CDATA[%\{([^}"']|%+[^}%'"]|"([^\\"]|\\[^\r\n])*"|%+"([^\\"]|\\[^\r\n])*"|'([^\\']|\\[^\r\n])*'|%+'([^\\']|\\[^\r\n])*')*%+}]]></pattern>
+                <action><![CDATA[/* support %} in literal string, but in comment is not support yet */this.begin('RULE_TRIAL'); $$ = $$.substr(2, $$.length - 4); return 'action2';]]></action>
+            </token>
+            <token states="RULE_INDENT">
+                <pattern><![CDATA[[^\r\n]+]]></pattern>
+                <action><![CDATA[this.begin('RULE_TRIAL'); return 'action3';]]></action>
+            </token>
+        </tokens>
+    </lexer>
+    <parser start="Config">
+        <operators>
+            <operator assoc="left"><![CDATA[{ }]]></operator>
+        </operators>
+        <rule head="Config">
+            <rhs>
+                <pattern>Decs grammar_rule_begin GrammarRules</pattern>
+                <action><![CDATA[$$ = {decs:$1,rules:$3};]]></action>
+            </rhs>
+        </rule>
+        <rule head="Decs">
+            <rhs>
+                <pattern>Decs LexDec</pattern>
+                <action><![CDATA[$$ = $1; $$.lex.push($2);]]></action>
+            </rhs>
+            <rhs>
+                <pattern>Decs PrecedenceDec</pattern>
+                <action><![CDATA[$$ = $1; $$.operator.push($2);]]></action>
+            </rhs>
+            <rhs>
+                <pattern>Decs StartDec</pattern>
+                <action><![CDATA[$$ = $1; $$.start = $2;]]></action>
+            </rhs>
+            <rhs>
+                <pattern></pattern>
+                <action><![CDATA[$$ = {lex:[],start:null,operator:[]};]]></action>
+            </rhs>
+        </rule>
+        <rule head="StartDec">
+            <rhs>
+                <pattern>grammar_dec_start grammar_id</pattern>
+                <action><![CDATA[$$ = $2;]]></action>
+            </rhs>
+        </rule>
+        <rule head="PrecedenceDec">
+            <rhs>
+                <pattern>Assoc Tokens</pattern>
+                <action><![CDATA[$$ = [$1,$2];]]></action>
+            </rhs>
+        </rule>
+        <rule head="Tokens">
+            <rhs>
+                <pattern>Tokens Symbol</pattern>
+                <action><![CDATA[$$ = $1; $$.push($2);]]></action>
+            </rhs>
+            <rhs>
+                <pattern>Symbol</pattern>
+                <action><![CDATA[$$ = [$1];]]></action>
+            </rhs>
+        </rule>
+        <rule head="Symbol">
+            <rhs>
+                <pattern>grammar_id</pattern>
+                <action><![CDATA[]]>
+                </action>
+            </rhs>
+            <rhs>
+                <pattern>grammar_string</pattern>
+                <action><![CDATA[]]>
+                </action>
+            </rhs>
+        </rule>
+        <rule head="Assoc">
+            <rhs>
+                <pattern>grammar_dec_left</pattern>
+                <action><![CDATA[$$ = 'left';]]></action>
+            </rhs>
+            <rhs>
+                <pattern>grammar_dec_right</pattern>
+                <action><![CDATA[$$ = 'right';]]></action>
+            </rhs>
+            <rhs>
+                <pattern>grammar_dec_nonassoc</pattern>
+                <action><![CDATA[$$ = 'nonassoc';]]></action>
+            </rhs>
+        </rule>
+        <rule head="GrammarRules">
+            <rhs>
+                <pattern>GrammarRules GrammarRule</pattern>
+                <action><![CDATA[$$ = $1; $$.push($2);]]></action>
+            </rhs>
+            <rhs>
+                <pattern></pattern>
+                <action><![CDATA[$$ = [];]]></action>
+            </rhs>
+        </rule>
+        <rule head="GrammarRule">
+            <rhs>
+                <pattern><![CDATA[grammar_id : HandleActions ;]]></pattern>
+                <action><![CDATA[$$ = {head:$1,bodies:$3};]]></action>
+            </rhs>
+        </rule>
+        <rule head="HandleActions">
+            <rhs>
+                <pattern><![CDATA[HandleActions | HandleAction]]></pattern>
+                <action><![CDATA[$$ = $1; $$.push($3);]]></action>
+            </rhs>
+            <rhs>
+                <pattern><![CDATA[HandleAction]]></pattern>
+                <action><![CDATA[$$ = [$1];]]></action>
+            </rhs>
+        </rule>
+        <rule head="HandleAction">
+            <rhs>
+                <pattern><![CDATA[Handle Prec Action]]></pattern>
+                <action><![CDATA[$$ = {p:$1,prec:$2,a:$3};]]></action>
+            </rhs>
+            <rhs>
+                <pattern><![CDATA[Handle Action]]></pattern>
+                <action><![CDATA[$$ = {p:$1,a:$2};]]></action>
+            </rhs>
+        </rule>
+        <rule head="Handle">
+            <rhs>
+                <pattern><![CDATA[Tokens]]></pattern>
+                <action><![CDATA[]]>
+                </action>
+            </rhs>
+            <rhs>
+                <pattern><![CDATA[]]>
+                </pattern>
+                <action><![CDATA[$$ = [];]]></action>
+            </rhs>
+        </rule>
+        <rule head="Prec">
+            <rhs>
+                <pattern><![CDATA[grammar_dec_prec Symbol]]></pattern>
+                <action><![CDATA[$$ = $2;]]></action>
+            </rhs>
+        </rule>
+        <rule head="Action">
+            <rhs>
+                <pattern><![CDATA[{ ActionBody }]]></pattern>
+                <action><![CDATA[$$ = $2;]]></action>
+            </rhs>
+            <rhs>
+                <pattern><![CDATA[]]>
+                </pattern>
+                <action><![CDATA[$$ = "";]]></action>
+            </rhs>
+        </rule>
+        <rule head="ActionBody">
+            <rhs>
+                <pattern><![CDATA[ActionBody { ActionBody } ActionBody]]></pattern>
+                <action><![CDATA[$$ = $1 + $2 + $3 + $4 + $5;]]></action>
+            </rhs>
+            <rhs>
+                <pattern><![CDATA[grammar_action_body]]></pattern>
+                <action><![CDATA[]]>
+                </action>
+            </rhs>
+            <rhs>
+                <pattern><![CDATA[]]>
+                </pattern>
+                <action><![CDATA[$$ = "";]]></action>
+            </rhs>
+        </rule>
+        <rule head="LexDec">
+            <rhs>
+                <pattern>lex_begin LexDecs rule_start Rules lex_end
+                </pattern>
+                <action><![CDATA[
+            $$ = {rules:$4, states:{inclusive:[],exclusive:[]}, decs:{'imports':[], 'package':'', 'class':'Lexer'}, codes:[], initials:[]};
             $2.forEach(function(arr:Array,...args):void
             {
-                if(arr[0] == "include")
+                switch(arr[0])
                 {
+                case 'include':
                     $$.states.inclusive.push.apply(null,arr[1]);
-                }
-                else if(arr[0] == 'exclude')
-                {
+                    break;
+                case 'exclude':
                     $$.states.exclusive.push.apply(null,arr[1]);
+                    break;
+                case 'import':
+                    $$.decs['imports'].push(arr[1]);
+                    break;
+                case 'class':
+                    $$.decs['class'] = arr[1];
+                    break;
+                case 'package':
+                    $$.decs['package'] = arr[1];
+                    break;
+                case 'initial':
+                    $$.initials.push(arr[1]);
+                    break;
+                case 'code':
+                    $$.codes.push(arr[1]);
+                    break;
                 }
             });
             ]]></action>
-        </rhs>
-    </rule>
-    <rule head="StateDecs">
-        <rhs>
-            <pattern>DecLines</pattern>
-        </rhs>
-        <rhs>
-            <pattern></pattern>
-            <action><![CDATA[$$ = [];]]></action>
-        </rhs>
-    </rule>
-    <rule head="DecLines">
-        <rhs>
-            <pattern>DecLines Decline</pattern>
-            <action><![CDATA[$$ = $1; $$.push($2);]]></action>
-        </rhs>
-        <rhs>
-            <pattern>Decline</pattern>
-            <action><![CDATA[$$ = [$1];]]></action>
-        </rhs>
-    </rule>
-    <rule head="Decline">
-        <rhs>
-            <pattern>dec_package name</pattern>
-            <action><![CDATA[$$ = ['package', $2];]]></action>
-        </rhs>
-        <rhs>
-            <pattern>dec_initial name</pattern>
-            <action><![CDATA[$$ = ['initial', $2];]]></action>
-        </rhs>
-        <rhs>
-            <pattern>dec_import name</pattern>
-            <action><![CDATA[$$ = ['import', $2];]]></action>
-        </rhs>
-        <rhs>
-            <pattern>dec_inc Names</pattern>
-            <action><![CDATA[$$ = ['include', $2];]]></action>
-        </rhs>
-        <rhs>
-            <pattern>dec_exc Names</pattern>
-            <action><![CDATA[$$ = ['exclude', $2];]]></action>
-        </rhs>
-    </rule>
-    <rule head="Names">
-        <rhs>
-            <pattern>Names name</pattern>
-            <action><![CDATA[$$ = $1; $$.push($2);]]></action>
-        </rhs>
-        <rhs>
-            <pattern>name</pattern>
-            <action><![CDATA[$$ = [$1];]]></action>
-        </rhs>
-    </rule>
-    <rule head="Rules">
-        <rhs>
-            <pattern>RuleList</pattern>
-        </rhs>
-        <rhs>
-            <pattern></pattern>
-            <action><![CDATA[$$ = [];]]></action>
-        </rhs>
-    </rule>
-    <rule head="RuleList">
-        <rhs>
-            <pattern>RuleList RuleItem</pattern>
-            <action><![CDATA[$$ = $1; $$.push($2);]]></action>
-        </rhs>
-        <rhs>
-            <pattern>RuleItem</pattern>
-            <action><![CDATA[$$ = [$1];]]></action>
-        </rhs>
-    </rule>
-    <rule head="RuleItem">
-        <rhs>
-            <pattern>Pattern LexAction</pattern>
-            <action><![CDATA[$$ = {p:$1,a:$2};]]></action>
-        </rhs>
-    </rule>
-    <rule head="Pattern">
-        <rhs>
-            <pattern><![CDATA[< Names > pattern]]></pattern>
-            <action><![CDATA[$$ = [$4,$2];]]></action>
-        </rhs>
-        <rhs>
-            <pattern><![CDATA[pattern]]></pattern>
-            <action><![CDATA[$$ = [$1];]]></action>
-        </rhs>
-    </rule>
-    <rule head="LexAction">
-        <rhs>
-            <pattern>action1</pattern>
-        </rhs>
-        <rhs>
-            <pattern>action2</pattern>
-        </rhs>
-        <rhs>
-            <pattern>action3</pattern>
-        </rhs>
-        <rhs>
-            <pattern></pattern>
-            <action><![CDATA[$$ = "";]]></action>
-        </rhs>
-    </rule>
-</parser>
+            </rhs>
+        </rule>
+        <rule head="LexDecs">
+            <rhs>
+                <pattern>DecLines</pattern>
+            </rhs>
+            <rhs>
+                <pattern></pattern>
+                <action><![CDATA[$$ = [];]]></action>
+            </rhs>
+        </rule>
+        <rule head="DecLines">
+            <rhs>
+                <pattern>DecLines Decline</pattern>
+                <action><![CDATA[$$ = $1; $$.push($2);]]></action>
+            </rhs>
+            <rhs>
+                <pattern>Decline</pattern>
+                <action><![CDATA[$$ = [$1];]]></action>
+            </rhs>
+        </rule>
+        <rule head="Decline">
+            <rhs>
+                <pattern>dec_package name</pattern>
+                <action><![CDATA[$$ = ['package', $2];]]></action>
+            </rhs>
+            <rhs>
+                <pattern>dec_initial lex_code</pattern>
+                <action><![CDATA[$$ = ['initial', $2];]]></action>
+            </rhs>
+            <rhs>
+                <pattern>dec_import name</pattern>
+                <action><![CDATA[$$ = ['import', $2];]]></action>
+            </rhs>
+            <rhs>
+                <pattern>dec_class name</pattern>
+                <action><![CDATA[$$ = ['class', $2];]]></action>
+            </rhs>
+            <rhs>
+                <pattern>dec_inc Names</pattern>
+                <action><![CDATA[$$ = ['include', $2];]]></action>
+            </rhs>
+            <rhs>
+                <pattern>dec_exc Names</pattern>
+                <action><![CDATA[$$ = ['exclude', $2];]]></action>
+            </rhs>
+            <rhs>
+                <pattern>lex_code</pattern>
+                <action><![CDATA[$$ = ['code', $1];]]></action>
+            </rhs>
+        </rule>
+        <rule head="Names">
+            <rhs>
+                <pattern>Names name</pattern>
+                <action><![CDATA[$$ = $1; $$.push($2);]]></action>
+            </rhs>
+            <rhs>
+                <pattern>name</pattern>
+                <action><![CDATA[$$ = [$1];]]></action>
+            </rhs>
+        </rule>
+        <rule head="Rules">
+            <rhs>
+                <pattern>RuleList</pattern>
+            </rhs>
+            <rhs>
+                <pattern></pattern>
+                <action><![CDATA[$$ = [];]]></action>
+            </rhs>
+        </rule>
+        <rule head="RuleList">
+            <rhs>
+                <pattern>RuleList RuleItem</pattern>
+                <action><![CDATA[$$ = $1; $$.push($2);]]></action>
+            </rhs>
+            <rhs>
+                <pattern>RuleItem</pattern>
+                <action><![CDATA[$$ = [$1];]]></action>
+            </rhs>
+        </rule>
+        <rule head="RuleItem">
+            <rhs>
+                <pattern>Pattern LexAction</pattern>
+                <action><![CDATA[$$ = {p:$1,a:$2};]]></action>
+            </rhs>
+        </rule>
+        <rule head="Pattern">
+            <rhs>
+                <pattern><![CDATA[< Names > pattern]]></pattern>
+                <action><![CDATA[$$ = [$4,$2];]]></action>
+            </rhs>
+            <rhs>
+                <pattern><![CDATA[pattern]]></pattern>
+                <action><![CDATA[$$ = [$1];]]></action>
+            </rhs>
+        </rule>
+        <rule head="LexAction">
+            <rhs>
+                <pattern>action1</pattern>
+            </rhs>
+            <rhs>
+                <pattern>action2</pattern>
+            </rhs>
+            <rhs>
+                <pattern>action3</pattern>
+            </rhs>
+            <rhs>
+                <pattern></pattern>
+                <action><![CDATA[$$ = "";]]></action>
+            </rhs>
+        </rule>
+    </parser>
 </as3cc>

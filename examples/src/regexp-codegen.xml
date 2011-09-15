@@ -1,5 +1,18 @@
 <as3cc>
     <lexer>
+        <declares>
+            <package>org.lala.lex.utils.parser</package>
+            <className>RegexLexer</className>
+            <imports><![CDATA[]]>
+            </imports>
+        </declares>
+        <code><![CDATA[
+            public function set token(value:String):void
+            {
+                _tokenName = value;
+            }
+            ]]></code>
+        <initial></initial>
         <states>
             <inclusive></inclusive>
             <exclusive>BRACKET REPEAT</exclusive>
@@ -126,11 +139,13 @@
             </rhs>
             <rhs>
                 <pattern>( R )</pattern>
-                <action><![CDATA[]]></action>
+                <action><![CDATA[]]>
+                </action>
             </rhs>
             <rhs>
                 <pattern>R Rp</pattern>
-                <action><![CDATA[]]></action>
+                <action><![CDATA[]]>
+                </action>
             </rhs>
             <rhs>
                 <pattern>R *</pattern>
@@ -270,12 +285,12 @@
         </rule>
         <rule head="C">
             <rhs>
-<!--                 普通字符和代表单个字符的转义符 \t \r \n -->
+                <!-- 普通字符和代表单个字符的转义符 \t \r \n -->
                 <pattern>c</pattern>
                 <action><![CDATA[put('c',$1);]]></action>
             </rhs>
             <rhs>
-<!--                 代表字符集合的转义字符, \d=[0-9] \s=[ \t\r\n] -->
+                <!-- 代表字符集合的转义字符, \d=[0-9] \s=[ \t\r\n] -->
                 <pattern>escc</pattern>
                 <action><![CDATA[put('escc', $1);]]></action>
             </rhs>
