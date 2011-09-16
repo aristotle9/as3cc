@@ -28,7 +28,7 @@ package org.lala.ui.editor.commands
                 _target.text = fileRef.data.toString();
                 _target.dispatchEvent(new Event(Event.CHANGE,true,false));
             });
-            fileRef.browse([new FileFilter("txt","*.txt")]);
+            fileRef.browse([new FileFilter("lpc","*.lpc")]);
         }
     }
 }

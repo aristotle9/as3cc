@@ -11,6 +11,7 @@
             import mx.events.FlexEvent;
             import mx.utils.StringUtil;
             
+            import org.lala.lex.configs.LexConfig;
             import org.lala.lex.interfaces.IInput;
             import org.lala.lex.interfaces.IInputSet;
             import org.lala.lex.interfaces.INFA;
@@ -20,8 +21,8 @@
             import org.lala.lex.utils.RegToken;
             import org.lala.lex.utils.RegexUtil;
             import org.lala.lex.utils.RegexpMachine002;
-            import org.lala.lex.utils.parser.RegexParser;
             import org.lala.lex.utils.TplRender;
+            import org.lala.lex.utils.parser.RegexParser;
             
             private var lexerGenerator:LexerGenerator;
 /*             protected function execBt_clickHandler(event:MouseEvent):void
@@ -101,12 +102,13 @@
                 });
                 fileRef.addEventListener(Event.COMPLETE, function(event:Event):void
                 {
-                    var config:Object = RegexUtil.PARSE_LEXER_SOURCE(new XML(fileRef.data));
+//                    var config:Object = RegexUtil.PARSE_LEXER_SOURCE(new XML(fileRef.data));
+                    var config:Object = (new LexConfig(String(fileRef.data))).data;
                     lexerGenerator = new LexerGenerator(config);
                     lexerGenerator.generate();
                     testOutputText.text += "ok.\n";
                 });
-                fileRef.browse([new FileFilter("xml","*.xml")]);
+                fileRef.browse([new FileFilter("lpc","*.lpc")]);
             }
 
             protected function saveFileBt_clickHandler(event:MouseEvent):void
@@ -146,6 +148,12 @@
                 lexerGenerator.saveLexerFile();
             }
 
+            protected function saveHtmlBt_clickHandler(event:MouseEvent):void
+            {
+                var fileRef:FileReference = new FileReference;
+                fileRef.save(testInputText.exportAsHtml(), "code.html");
+            }
+
         ]]>
     </fx:Script>
     <mx:VBox width="100%" height="100%" verticalGap="0">
@@ -165,7 +173,8 @@
                     <mx:Button id="loadFileBt" label="LoadXML" click="loadFileBt_clickHandler(event)" fillAlphas="[1.0, 1.0, 1.0, 1.0]" fillColors="[#BEDF5D, #D6EB9A]"/>
                     <mx:Button id="saveFileBt" label="SaveTable" click="saveFileBt_clickHandler(event)" fillAlphas="[1.0, 1.0, 1.0, 1.0]" fillColors="[#BEDF5D, #D6EB9A]"/>
                     <mx:Button id="saveActionBt" label="SaveAction" click="saveActionBt_clickHandler(event)" fillAlphas="[1.0, 1.0, 1.0, 1.0]" fillColors="[#BEDF5D, #D6EB9A]"/>
-                    <mx:Button id="saveRawTableBt" label="Render" click="saveRawTableBt_clickHandler(event)" fillAlphas="[1.0, 1.0, 1.0, 1.0]" fillColors="[#BEDF5D, #D6EB9A]"/>
+                    <mx:Button id="saveRawTableBt" label="SingleFile" click="saveRawTableBt_clickHandler(event)" fillAlphas="[1.0, 1.0, 1.0, 1.0]" fillColors="[#BEDF5D, #D6EB9A]"/>
+                    <mx:Button id="saveHtmlBt" label="HTML" click="saveHtmlBt_clickHandler(event)" fillAlphas="[1.0, 1.0, 1.0, 1.0]" fillColors="[#BEDF5D, #D6EB9A]"/>
                     <mx:Button label="CleanLog" id="testCleanBt" click="testOutputText.text=''" fillAlphas="[1.0, 1.0, 1.0, 1.0]" fillColors="[#BEDF5D, #D6EB9A]"/>    
                 </mx:HBox>
                 <editor:HighlightEditor id="testInputText" height="85%" width="100%">
