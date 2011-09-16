@@ -6,6 +6,8 @@
             import mx.controls.textClasses.TextRange;
             import mx.events.FlexEvent;
             import mx.events.ItemClickEvent;
+            import mx.events.ScrollEvent;
+            import mx.events.ScrollEventDirection;
             
             import org.lala.ui.editor.commands.DeleteLinesCommand;
             import org.lala.ui.editor.commands.IndentCommand;
@@ -14,25 +16,40 @@
             import org.lala.ui.editor.commands.UnIndentCommand;
             import org.lala.ui.editor.interfaces.ICommand;
             /** 样式定义 **/
-            protected const cssString:String = ".lex_begin,.lex_end,.rule_start,.grammar_begin,.grammar_rule_begin{color:#880000;font-weight:bold;}" +
-                ".dec_head{color:#4F94CD;font-weight:bold;}" +
-                ".name{color:#660066;}" +
-                ".lb,.rb{color: #666600;}" +//<>
-                ".pattern{color:#0068CF;}" +
-                ".comment{color: #008800;}" +
-                ".action{color:#000088;}" +
-                ".code{color:#006666}" +
-                ".grammar_dec_left,.grammar_dec_right,.grammar_dec_nonassoc,.grammar_dec_prec,.grammar_dec_start{color:#BF3F00;font-weight:bold;}" +
-                ".grammar_id{color:#0068CF;}" +
-                ".grammar_string{color:#B400B4;}" +
-                ".grammar_action_body{color:#000088;}";
+            protected const cssString:String = 
+                ".lex_begin,.lex_end,.rule_start,.grammar_begin,.grammar_rule_begin{color:#880000;font-weight:bold;font-size:12px;font-family:Consolas;}" +
+                ".dec_head{color:#4F94CD;font-weight:bold;font-size:12px;font-family:Consolas;}" +
+                ".name{color:#660066;font-weight:normal;font-size:12px;font-family:Consolas;}" +
+                ".lb,.rb{color: #666600;font-weight:normal;font-size:12px;font-family:Consolas;}" +//<>
+                ".pattern{color:#0068CF;font-weight:normal;font-size:12px;font-family:Consolas;}" +
+                ".comment{color: #008800;font-weight:normal;font-size:12px;font-family:Consolas;}" +
+                ".action{color:#000088;font-weight:normal;font-size:12px;font-family:Consolas;}" +
+                ".code{color:#006666;font-weight:normal;font-size:12px;font-family:Consolas;}" +
+                ".grammar_dec_left,.grammar_dec_right,.grammar_dec_nonassoc,.grammar_dec_prec,.grammar_dec_start{color:#BF3F00;font-weight:bold;font-size:12px;font-family:Consolas;}" +
+                ".grammar_id{color:#0068CF;font-weight:normal;font-size:12px;font-family:Consolas;}" +
+                ".grammar_string{color:#B400B4;font-weight:normal;font-size:12px;font-family:Consolas;}" +
+                ".grammar_action_body{color:#000088;font-weight:normal;font-size:12px;font-family:Consolas;}" +
+                ".plain{color:#000000;font-weight:normal;font-size:12px;font-family:Consolas;}";
             /** 样式数据 **/
-            protected var codeStyle:StyleSheet;
+            [Bindable] protected var codeStyle:StyleSheet;
             /** 冷却时间 **/
             protected var coldTimer:Timer;
             
             [Bindable]public var text:String;
-
+            [Bindable]public var htmlText:String;
+            
+            public function exportAsHtml():String
+            {
+                return '<html>' +
+                    '<head>' +
+                    '<meta http-equiv="Content-Type" content="text/html; charset=utf-8">' +
+                    '<style type="text/css">body{background-color:#ffffe1;}' + 
+                    cssString.replace(/Consolas/g,'"$&"') + 
+                    '</style></head><body>' + 
+                    htmlText.replace(/\r\n?/g, "<br />\r\n") + 
+                    '</body></html>';
+            }
+            
             protected function canvas1_creationCompleteHandler(event:FlexEvent):void
             {
                 /** 解析定义文本 **/
@@ -59,20 +76,16 @@
                 var lexInfo:Array = HighlightAssist.getInstance().lexInfo(editor.text);
                 var tr:TextRange;
                 var lastIndex:uint = 0;
+                var result:Array = new Array;
+                var oldRange:Array = [0, 0, 0];
                 lexInfo.forEach(function(info:Array,...args):void
                 {
-                    var obj:Object = codeStyle.getStyle('.' + info[0]);
-                    if(obj != null)
+                    if(oldRange[2] != info[1])
                     {
-                        tr = new TextRange(editor, false, info[1], info[2]);
-                        tr.color = obj.color;
-                        tr.fontWeight = obj.fontWeight;
+                        result.push('<span class="plain">' + htmlEscape(text.substring(oldRange[2], info[1])) + '</span>');
                     }
-                    else
-                    {
-                        tr = new TextRange(editor, false, info[1], info[2]);
-                        tr.color = 0x222222;
-                    }
+                    result.push('<span class="' + info[0] + '">' + htmlEscape(text.substring(info[1],info[2])) + '</span>');
+                    oldRange = info;
                 });
                 if(lexInfo.length > 0)
                 {
@@ -80,12 +93,27 @@
                 }
                 if(lastIndex <= editor.length - 1)
                 {
-                    tr = new TextRange(editor, false, lastIndex, editor.length);
-                    tr.color = 0x000000;
-                    tr.fontWeight = "normal";
+                    result.push('<span class="plain">' + htmlEscape(text.substring(lastIndex, text.length)) + '</span>');
                 }
+                htmlText = '';
+                htmlText = result.join('');
+                viewer.styleSheet = codeStyle;
             }
-
+            
+            private function htmlEscape(str:String):String
+            {
+                return str.replace(/<|>|\&| |\t/g, function(...args):String
+                {
+                    var obj:Object = {
+                        '<' : '&lt;',
+                        '>' : '&gt;',
+                        '&' : '&amp;',
+                        ' ' : '&nbsp;',
+                        '\t' : '&nbsp;&nbsp;&nbsp;&nbsp;'
+                    }
+                    return obj[args[0]];
+                });
+            }
             protected function editor_keyFocusChangeHandler(event:FocusEvent):void
             {
                 var cmd:ICommand; 
@@ -127,6 +155,23 @@
                 editor.setFocus();
             }
 
+
+            protected function editor_scrollHandler(event:ScrollEvent):void
+            {
+                if(event.direction == ScrollEventDirection.VERTICAL)
+                    viewer.verticalScrollPosition = editor.verticalScrollPosition;
+                else
+                    viewer.horizontalScrollPosition = editor.horizontalScrollPosition;
+            }
+
+            protected function viewer_scrollHandler(event:ScrollEvent):void
+            {
+//                if(event.direction == ScrollEventDirection.VERTICAL)
+//                    editor.verticalScrollPosition = viewer.verticalScrollPosition;
+//                else
+//                    editor.horizontalScrollPosition = viewer.horizontalScrollPosition;
+            }
+
         ]]>
     </fx:Script>
     <mx:VBox width="100%" height="100%" verticalGap="1">
@@ -139,10 +184,12 @@
             </fx:Array>
         </mx:dataProvider>
     </mx:ButtonBar>
-    <mx:HBox width="100%" height="100%" horizontalGap="0">
-        <mx:Canvas width="20" height="100%" backgroundColor="#BBD9EE"/>
-        <mx:TextArea height="100%" id="editor" change="needColor()" text="@{this.text}" backgroundColor="#FFFFE1" fontFamily="Consolas" fontSize="14" color="#003344" wordWrap="false" keyFocusChange="editor_keyFocusChangeHandler(event)" keyDown="editor_keyDownHandler(event)" width="100%" focusThickness="0">
-    </mx:TextArea>
-    </mx:HBox>
+        <mx:HBox width="100%" height="100%" horizontalGap="0">
+            <mx:Canvas width="20" height="100%" backgroundColor="#BBD9EE"/>
+            <mx:TextArea height="100%" id="editor" change="needColor()" scroll="editor_scrollHandler(event)" text="@{this.text}" backgroundColor="#FFFFE1" fontFamily="Consolas" fontSize="12" color="#003344" wordWrap="false" keyFocusChange="editor_keyFocusChangeHandler(event)" keyDown="editor_keyDownHandler(event)" width="100%" focusThickness="0">
+            </mx:TextArea>
+            <mx:TextArea height="100%" id="viewer" htmlText="{this.htmlText}" scroll="viewer_scrollHandler(event)" backgroundColor="#FFFFE1" color="#003344" wordWrap="false" width="100%" focusThickness="0">
+            </mx:TextArea>
+        </mx:HBox>
     </mx:VBox>
 </mx:Canvas>

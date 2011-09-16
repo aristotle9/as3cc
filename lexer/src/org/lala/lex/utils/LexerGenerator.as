@@ -96,7 +96,7 @@ package org.lala.lex.utils
             ret.push('_transTable = ');
             ret.push(JSON.encode(_stateTrans));
             ret.push(';_finalTable = ');
-            ret.push(JSON.encode(_finalIndices));
+            ret.push(JSON.encode(_finalIndices).replace(/"(\d+)"(?=\s*:)/g,'$1'));
             ret.push(';_inputTable = ');
             ret.push(JSON.encode(_inputTrans));
             ret.push(';_initialTable = ');
