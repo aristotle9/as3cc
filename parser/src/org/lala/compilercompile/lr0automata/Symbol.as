@@ -11,9 +11,9 @@ package org.lala.compilercompile.lr0automata
         protected var _text:String;
         protected var _id:uint;
         protected var _preced:uint;
-        protected var _assoc:uint;
+        protected var _assoc:String;
         
-        public function Symbol(id:uint, text:String, isTerminal:Boolean=true, isNullable:Boolean=false, preced:uint=0, assoc:uint=0)
+        public function Symbol(id:uint, text:String, isTerminal:Boolean=true, isNullable:Boolean=false, preced:uint=0, assoc:String='nonassoc')
         {
             _id = id;
             _text = text;
@@ -58,7 +58,7 @@ package org.lala.compilercompile.lr0automata
             return _preced;
         }
 
-        public function get assoc():uint
+        public function get assoc():String
         {
             return _assoc;
         }

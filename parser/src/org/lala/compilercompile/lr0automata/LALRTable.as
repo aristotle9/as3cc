@@ -75,7 +75,7 @@ package org.lala.compilercompile.lr0automata
                         * 优先级相同:这种情况下结合性也必须相同[否则产生警告],左结合的:归约;右结合的:移入,无结合的:警告
                         **/
                         cell = _table[s.id][sm.id];
-                        if(sm.assoc == 2 || cell.production.assoc == 2)//无结合
+                        if(sm.assoc == 'nonassoc' || cell.production.assoc == 'nonassoc')//无结合
                         {
                             throw new Error("无结合性,但是需要结合性来解决的S/R冲突:@符号" + sm.text + ' &表达式' + String(cell.production));
                         }
@@ -92,7 +92,7 @@ package org.lala.compilercompile.lr0automata
                             }
                             else
                             {
-                                if(sm.assoc == 1)//右结合
+                                if(sm.assoc == 'right')//右结合
                                 {
                                     //移入
                                     cell = new TableCell(TableCell.SHIFT, ns);

@@ -5,6 +5,7 @@ package org.lala.compilercompile.lr0automata
     import flash.net.FileReference;
     import flash.utils.ByteArray;
     
+    import org.lala.compilercompile.interfaces.IConfig;
     import org.lala.compilercompile.interfaces.IGLA;
     import org.lala.compilercompile.interfaces.IItem;
     import org.lala.compilercompile.interfaces.IItemSet;
@@ -32,10 +33,10 @@ package org.lala.compilercompile.lr0automata
         protected var _gla:IGLA;
         protected var _parserTable:ILALRTable;
         
-        protected var _srcProvider:XmlParser;
+        protected var _srcProvider:IConfig;
         protected var _twoTable:Array;
         
-        public function LR0Automata(srcProvider:XmlParser)
+        public function LR0Automata(srcProvider:IConfig)
         {
             _srcProvider = srcProvider;
             _productions = new Productions;
@@ -82,11 +83,11 @@ package org.lala.compilercompile.lr0automata
                 if(obj.nt == false)
                 {
                     var preced:uint = 0;
-                    var assoc:uint = 2;
+                    var assoc:String = 'nonassoc';
                     if(_srcProvider.data.parser.operators[obj.text])
                     {
                         preced = Number(_srcProvider.data.parser.operators[obj.text].preced);
-                        assoc = Number(_srcProvider.data.parser.operators[obj.text].assoc);
+                        assoc = _srcProvider.data.parser.operators[obj.text].assoc;
                     }
                     _symbols.defineSymbol(obj.text, true, preced, assoc);
                 }

@@ -8,7 +8,7 @@ package org.lala.compilercompile.lr0automata
     {
         protected var _id:uint;
         protected var _preced:uint=0;
-        protected var _assoc:uint=2;//none assoc
+        protected var _assoc:String="nonassoc";//none assoc
         protected var _left:INonTerminal;
         protected var _right:Vector.<ISymbol>;
         protected var _preLength:uint;
@@ -65,12 +65,12 @@ package org.lala.compilercompile.lr0automata
             _preced = value;
         }
 
-        public function get assoc():uint
+        public function get assoc():String
         {
             return _assoc;
         }
 
-        public function set assoc(value:uint):void
+        public function set assoc(value:String):void
         {
             _assoc = value;
         }

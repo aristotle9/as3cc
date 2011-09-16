@@ -9,6 +9,6 @@ package org.lala.compilercompile.interfaces
         function get htmlText():String;
         function get id():uint;
         function get preced():uint;
-        function get assoc():uint;
+        function get assoc():String;
     }
 }

@@ -11,6 +11,7 @@
             import mx.controls.dataGridClasses.DataGridColumn;
             import mx.events.ListEvent;
             
+            import org.lala.compilercompile.configs.ParserConfig;
             import org.lala.compilercompile.lr0automata.LR0Automata;
             import org.lala.compilercompile.utils.SimpleParser;
             import org.lala.compilercompile.utils.XmlParser;
@@ -28,8 +29,9 @@
                 });
                 fileRef.addEventListener(Event.COMPLETE, function(event:Event):void
                 {
-                    var xmlData:XmlParser = new XmlParser(new XML(fileRef.data));
-                    lr0a = new LR0Automata(xmlData);
+//                    var pConfig:XmlParser = new XmlParser(new XML(fileRef.data));
+                    var pConfig:ParserConfig = new ParserConfig(String(fileRef.data));
+                    lr0a = new LR0Automata(pConfig);
                     inputText.text = lr0a.toString();
                     outputText.text = lr0a.glaString();
                     //                outputText.text = lr0a.tableString();
@@ -51,7 +53,8 @@
                     table.dataProvider = lr0a.table;
                     vstk.selectedIndex = 2;
                 });
-                fileRef.browse([new FileFilter("xml","*.xml")]);
+//                fileRef.browse([new FileFilter("xml","*.xml")]);
+                fileRef.browse([new FileFilter("lpc","*.lpc")]);
             }
 
             protected function toggleWindow():void

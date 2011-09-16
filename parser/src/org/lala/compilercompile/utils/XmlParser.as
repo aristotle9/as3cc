@@ -1,6 +1,8 @@
 package org.lala.compilercompile.utils
 {
-    public class XmlParser
+    import org.lala.compilercompile.interfaces.IConfig;
+
+    public class XmlParser implements IConfig
     {
         private var _data:Object;
         
@@ -50,18 +52,18 @@ package org.lala.compilercompile.utils
                     case "operators":
                         for each(var item:XML in rule.children())
                         {
-                            var assoc:uint = 2;
+                            var assoc:String = 'nonassoc';
                             if(String(item.@assoc) == "left")
                             {
-                                assoc = 0
+                                assoc = 'left'
                             }
                             else if(String(item.@assoc) == "right")
                             {
-                                assoc = 1
+                                assoc = 'right'
                             }
-                            else if(String(item.@assoc) == "none")
+                            else if(String(item.@assoc) == "none" || String(item.@assoc) == 'nonassoc')
                             {
-                                assoc = 2
+                                assoc = 'nonassoc'
                             }
                             var arr:Array = String(item).split(/[\s,]+/);
                             arr.forEach(function(op:String,...args):void

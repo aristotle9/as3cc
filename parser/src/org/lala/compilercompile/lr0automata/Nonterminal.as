@@ -67,9 +67,9 @@ package org.lala.compilercompile.lr0automata
             return 0;
         }
         
-        public function get assoc():uint
+        public function get assoc():String
         {
-            return 0;
+            return null;
         }
     }
 }

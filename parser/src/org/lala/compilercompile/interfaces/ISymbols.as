@@ -10,7 +10,7 @@ package org.lala.compilercompile.interfaces
         * @param assoc 终结符解决二义性的结合性
         * @return 所定义的符号
         **/
-        function defineSymbol(text:String,ter:Boolean, preced:uint=0, assoc:uint=0):ISymbol;
+        function defineSymbol(text:String,ter:Boolean, preced:uint=0, assoc:String='nonassoc'):ISymbol;
         function getSymbol(text:String):ISymbol;
         function eachNonterminal(foo:Function):void;
         function eachTerminal(foo:Function):void;

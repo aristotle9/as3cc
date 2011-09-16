@@ -20,7 +20,7 @@ package org.lala.compilercompile.lr0automata
             _list = [epsilon, end];
         }
         
-        public function defineSymbol(text:String, ter:Boolean, preced:uint=0, assoc:uint=2):ISymbol
+        public function defineSymbol(text:String, ter:Boolean, preced:uint=0, assoc:String='nonassoc'):ISymbol
         {
             if(_table[text] != null)
             {
@@ -38,7 +38,7 @@ package org.lala.compilercompile.lr0automata
             return null;
         }
         
-        protected function createSymbol(text:String, ter:Boolean, preced:uint=0, assoc:uint=2):ISymbol
+        protected function createSymbol(text:String, ter:Boolean, preced:uint=0, assoc:String='nonassoc'):ISymbol
         {
 //            var ter:Boolean = false;
 //            var fc:String = text.charAt();
