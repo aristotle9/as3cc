@@ -1,7 +1,7 @@
 <as3cc>
     <lexer>
         <declares>
-            <package>org.lala.as3cc</package>
+            <package>test</package>
             <className>Lexer</className>
             <imports><![CDATA[]]>
             </imports>
@@ -10,9 +10,11 @@
         <initial></initial>
         <states>
             <inclusive>GRAMMAR_RULE</inclusive>
-            <exclusive>DEC DEC_COND RULE RULE_COND RULE_SPACE
-                RULE_PATTERN RULE_TRIAL RULE_INDENT GRAMMAR_ACTION
-                DEC_CODE</exclusive>
+            <exclusive>
+            DEC DEC_COND RULE RULE_COND RULE_SPACE
+            RULE_PATTERN RULE_TRIAL RULE_INDENT GRAMMAR_ACTION
+            DEC_CODE
+            </exclusive>
         </states>
         <tokens>
             <!-- 语法声明块 -->
@@ -110,6 +112,10 @@
                 <pattern><![CDATA[%import]]></pattern>
                 <action><![CDATA[this.begin("DEC_COND"); return 'dec_import';]]></action>
             </token>
+            <token states="DEC">
+                <pattern><![CDATA[%field]]></pattern>
+                <action><![CDATA[this.begin("DEC_COND"); return 'dec_field';]]></action>
+            </token>
             <token states="DEC_COND RULE_COND">
                 <pattern><![CDATA[[a-zA-Z_][\w_\-\.\*]*]]></pattern>
                 <action><![CDATA[return 'name';]]></action>
@@ -197,6 +203,15 @@
         </tokens>
     </lexer>
     <parser start="Config">
+        <declares>
+            <package>test</package>
+            <className>Parser</className>
+            <lexerName>Lexer</lexerName>
+            <imports><![CDATA[]]>
+            </imports>
+        </declares>
+        <code></code>
+        <initial></initial>
         <operators>
             <operator assoc="left"><![CDATA[{ }]]></operator>
         </operators>
@@ -358,7 +373,7 @@
                 <pattern>lex_begin LexDecs rule_start Rules lex_end
                 </pattern>
                 <action><![CDATA[
-            $$ = {rules:$4, states:{inclusive:[],exclusive:[]}, decs:{'imports':[], 'package':'', 'class':'Lexer'}, codes:[], initials:[]};
+            $$ = {rules:$4, states:{inclusive:[],exclusive:[]}, decs:{'imports':[], 'package':'', 'class':''}, codes:[], initials:[], fields:[]};
             $2.forEach(function(arr:Array,...args):void
             {
                 switch(arr[0])
@@ -383,6 +398,9 @@
                     break;
                 case 'code':
                     $$.codes.push(arr[1]);
+                    break;
+                case 'field':
+                    $$.fields.push({name:arr[1], code:arr[2]});
                     break;
                 }
             });
@@ -432,6 +450,10 @@
             <rhs>
                 <pattern>dec_exc Names</pattern>
                 <action><![CDATA[$$ = ['exclude', $2];]]></action>
+            </rhs>
+            <rhs>
+                <pattern>dec_field name lex_code</pattern>
+                <action><![CDATA[$$ = ['field', $2, $3];]]></action>
             </rhs>
             <rhs>
                 <pattern>lex_code</pattern>

@@ -1,5 +1,13 @@
 <as3cc>
 <lexer>
+    <declares>
+        <package>org.lala.ui.editor</package>
+        <className>HighlightLexer</className>
+        <imports><![CDATA[]]>
+        </imports>
+    </declares>
+    <code></code>
+    <initial></initial>
     <states>
         <inclusive>GRAMMAR_RULE</inclusive>
         <exclusive>DEC DEC_COND RULE RULE_COND RULE_SPACE RULE_PATTERN RULE_TRIAL RULE_INDENT GRAMMAR_ACTION</exclusive>

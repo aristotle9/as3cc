@@ -125,6 +125,20 @@
         </tokens>
     </lexer>
     <parser start="R">
+        <declares>
+            <package>org.lala.lex.utils.parser</package>
+            <className>RegexParser</className>
+            <imports><![CDATA[]]>
+            </imports>
+        </declares>
+        <code><![CDATA[]]></code>
+        <initial><![CDATA[
+        var code:Array = [];
+        function put(...args):void
+        {
+            code.push(args);
+        };
+        ]]></initial>
         <operators>
             <operator assoc="left"><![CDATA[|]]></operator>
             <operator assoc="left"><![CDATA[escc c cat ( []]></operator>
@@ -142,7 +156,7 @@
                 <action><![CDATA[]]>
                 </action>
             </rhs>
-            <rhs>
+            <rhs precedence="*">
                 <pattern>R Rp</pattern>
                 <action><![CDATA[]]>
                 </action>
