@@ -1,8 +1,8 @@
 <as3cc>
     <lexer>
         <declares>
-            <package>test</package>
-            <className>Lexer</className>
+            <package>org.lala.lex.configs.parser</package>
+            <className>LexLexer</className>
             <imports><![CDATA[]]>
             </imports>
         </declares>
@@ -190,15 +190,15 @@
             </token>
             <token states="RULE_INDENT">
                 <pattern><![CDATA[\{[^}\r\n]*\}]]></pattern>
-                <action><![CDATA[this.begin('RULE_TRIAL'); $$ = $$.substr(1, $$.length - 2); return 'action1';]]></action>
+                <action><![CDATA[this.begin('RULE_TRIAL'); $$ = $$.substr(1, $$.length - 2); return 'action';]]></action>
             </token>
             <token states="RULE_INDENT">
-                <pattern><![CDATA[%\{([^}"']|%+[^}%'"]|"([^\\"]|\\[^\r\n])*"|%+"([^\\"]|\\[^\r\n])*"|'([^\\']|\\[^\r\n])*'|%+'([^\\']|\\[^\r\n])*')*%+}]]></pattern>
-                <action><![CDATA[/* support %} in literal string, but in comment is not support yet */this.begin('RULE_TRIAL'); $$ = $$.substr(2, $$.length - 4); return 'action2';]]></action>
+                <pattern><![CDATA[%\{([^%'"]|%+[^}%'"]|"([^\\"]|\\.)*"|%+"([^\\"]|\\.)*"|'([^\\']|\\.)*'|%+'([^\\']|\\.)*')*%+}]]></pattern>
+                <action><![CDATA[/* support %} in literal string, but in comment is not support yet */this.begin('RULE_TRIAL'); $$ = $$.substr(2, $$.length - 4); return 'action';]]></action>
             </token>
             <token states="RULE_INDENT">
                 <pattern><![CDATA[[^\r\n]+]]></pattern>
-                <action><![CDATA[this.begin('RULE_TRIAL'); return 'action3';]]></action>
+                <action><![CDATA[this.begin('RULE_TRIAL'); return 'action';]]></action>
             </token>
         </tokens>
     </lexer>
@@ -228,7 +228,14 @@
             </rhs>
             <rhs>
                 <pattern>Decs PrecedenceDec</pattern>
-                <action><![CDATA[$$ = $1; $$.operator.push($2);]]></action>
+                <action><![CDATA[
+                $$ = $1;
+                $2[1].forEach(function(sm:String, ...args):void
+                {
+                    $$.operators[sm] = {preced:$$.preced, assoc: $2[0]};
+                });
+                $$.preced ++;
+                ]]></action>
             </rhs>
             <rhs>
                 <pattern>Decs StartDec</pattern>
@@ -236,7 +243,7 @@
             </rhs>
             <rhs>
                 <pattern></pattern>
-                <action><![CDATA[$$ = {lex:[],start:null,operator:[]};]]></action>
+                <action><![CDATA[$$ = {lex:[],start:null,operators:{},preced:0};]]></action>
             </rhs>
         </rule>
         <rule head="StartDec">
@@ -300,7 +307,7 @@
         <rule head="GrammarRule">
             <rhs>
                 <pattern><![CDATA[grammar_id : HandleActions ;]]></pattern>
-                <action><![CDATA[$$ = {head:$1,bodies:$3};]]></action>
+                <action><![CDATA[$$ = {head:$1,rhs:$3};]]></action>
             </rhs>
         </rule>
         <rule head="HandleActions">
@@ -316,11 +323,11 @@
         <rule head="HandleAction">
             <rhs>
                 <pattern><![CDATA[Handle Prec Action]]></pattern>
-                <action><![CDATA[$$ = {p:$1,prec:$2,a:$3};]]></action>
+                <action><![CDATA[$$ = {pattern:$1,preced:$2,action:$3};]]></action>
             </rhs>
             <rhs>
                 <pattern><![CDATA[Handle Action]]></pattern>
-                <action><![CDATA[$$ = {p:$1,a:$2};]]></action>
+                <action><![CDATA[$$ = {pattern:$1,action:$2};]]></action>
             </rhs>
         </rule>
         <rule head="Handle">
@@ -502,18 +509,12 @@
             </rhs>
             <rhs>
                 <pattern><![CDATA[pattern]]></pattern>
-                <action><![CDATA[$$ = [$1];]]></action>
+                <action><![CDATA[$$ = [$1, []];]]></action>
             </rhs>
         </rule>
         <rule head="LexAction">
             <rhs>
-                <pattern>action1</pattern>
-            </rhs>
-            <rhs>
-                <pattern>action2</pattern>
-            </rhs>
-            <rhs>
-                <pattern>action3</pattern>
+                <pattern>action</pattern>
             </rhs>
             <rhs>
                 <pattern></pattern>

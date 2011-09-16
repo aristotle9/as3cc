@@ -157,7 +157,7 @@
             <action><![CDATA[this.begin('RULE_TRIAL'); $$ = $$.substr(1, $$.length - 2); return 'action';]]></action>
         </token>
         <token states="RULE_INDENT">
-            <pattern><![CDATA[%\{([^}"']|%+[^}%'"]|"([^\\"]|\\[^\r\n])*"|%+"([^\\"]|\\[^\r\n])*"|'([^\\']|\\[^\r\n])*'|%+'([^\\']|\\[^\r\n])*')*%+}]]></pattern>
+            <pattern><![CDATA[%\{([^%'"]|%+[^}%'"]|"([^\\"]|\\.)*"|%+"([^\\"]|\\.)*"|'([^\\']|\\.)*'|%+'([^\\']|\\.)*')*%+}]]></pattern>
             <action><![CDATA[/* support %} in literal string, but in comment is not support yet */this.begin('RULE_TRIAL'); $$ = $$.substr(2, $$.length - 4); return 'action';]]></action>
         </token>
         <token states="RULE_INDENT">
