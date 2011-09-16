@@ -37,11 +37,12 @@ package org.lala.compilercompile.lr0automata
                     p.right.push(sm);
                     if(sm.isTerminal)
                     {
-                        if(p.preced <= sm.preced)
-                        {
+                        //从网上看来说要使用最右的终结符的优先级
+//                        if(p.preced <= sm.preced)
+//                        {
                             p.preced = sm.preced;
                             p.assoc = sm.assoc;
-                        }
+//                        }
                     }
                 }
             }
