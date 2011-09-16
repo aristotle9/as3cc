@@ -15,11 +15,10 @@
             import org.lala.compilercompile.utils.SimpleParser;
             import org.lala.compilercompile.utils.XmlParser;
             
-            import test.Lexer;
-            import test.Parser;
+//            import test.Lexer;
+//            import test.Parser;
             
-            protected var actions:String;
-            protected var tableData:ByteArray;
+            protected var lr0a:LR0Automata;
             protected function generate():void
             {
                 var fileRef:FileReference = new FileReference;
@@ -30,7 +29,7 @@
                 fileRef.addEventListener(Event.COMPLETE, function(event:Event):void
                 {
                     var xmlData:XmlParser = new XmlParser(new XML(fileRef.data));
-                    var lr0a:LR0Automata = new LR0Automata(xmlData);
+                    lr0a = new LR0Automata(xmlData);
                     inputText.text = lr0a.toString();
                     outputText.text = lr0a.glaString();
                     //                outputText.text = lr0a.tableString();
@@ -50,9 +49,7 @@
                     }
                     table.columns = cols;
                     table.dataProvider = lr0a.table;
-                    vstk.selectedIndex = 1;
-                    actions = lr0a.actionsOutput();
-                    tableData = lr0a.binaryOutput();
+                    vstk.selectedIndex = 2;
                 });
                 fileRef.browse([new FileFilter("xml","*.xml")]);
             }
@@ -64,20 +61,20 @@
             }
             protected function parse():void
             {
-                var lex:Lexer = new Lexer();
-                lex.source = inputText.text;
-                var ps:Parser = new Parser();
-                outputText.text = JSON.encode(ps.parse(lex), true);
+//                var lex:Lexer = new Lexer();
+//                lex.source = inputText.text;
+//                var ps:Parser = new Parser();
+//                outputText.text = JSON.encode(ps.parse(lex), true);
             }
             protected function saveTable():void
             {
                 var fileRef:FileReference = new FileReference;
-                fileRef.save(tableData, "parserData.dat");
+                fileRef.save(lr0a.binaryOutput(), "parserData.dat");
             }
             protected function saveActions():void
             {
                 var fileRef:FileReference = new FileReference;
-                fileRef.save(actions, "parserActions.txt");
+                fileRef.save(lr0a.actionsOutput(), "parserActions.txt");
             }
             protected function toolbarList_itemClickHandler(event:ListEvent):void
             {
@@ -137,6 +134,12 @@
                     }
                 }
             }
+
+            protected function fileTextBt_clickHandler(event:MouseEvent):void
+            {
+                lr0a.saveParserFile();
+            }
+
         ]]>
     </fx:Script>
 
@@ -157,6 +160,7 @@
                     <mx:Button id="loadXmlBt" label="LoadXML" click="loadXmlBt_clickHandler(event)" />
                     <mx:Button id="tableDataBt" label="TableData" click="tableDataBt_clickHandler(event)" />
                     <mx:Button id="actionTextBt" label="ActionText" click="actionTextBt_clickHandler(event)" />
+                    <mx:Button id="fileTextBt" label="FileText" click="fileTextBt_clickHandler(event)" />
                 </mx:HBox>
             </mx:VBox>
             <mx:VBox horizontalAlign="center">

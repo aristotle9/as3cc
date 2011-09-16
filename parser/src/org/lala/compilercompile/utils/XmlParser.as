@@ -13,12 +13,40 @@ package org.lala.compilercompile.utils
         protected function parse_parser(xml:XML):Object
         {
             var parser:XMLList = xml.parser.children();
-            var table:Object = {start:String(xml.parser.@start),rules:[],operators:{}};
+            var table:Object = {start:'',rules:[],operators:{}};
             var precedence:uint = 0;
+            var decs:Object = {'class':'', imports:[], 'package':'',lexerName:''};
+            var codes:Array = [];
+            var initials:Array = [];
+            
             for each(var rule:XML in parser)
             {
                 switch(String(rule.name()))
                 {
+                    case 'declares':
+                        if(String(rule.className))
+                        {
+                            decs['class'] = String(rule.className);
+                        }
+                        if(String(rule.lexerName))
+                        {
+                            decs['lexerName'] = String(rule.lexerName);
+                        }
+                        if(String(rule['package']))
+                        {
+                            decs['package'] = String(rule['package']);
+                        }
+                        if(String(rule['imports']))
+                        {
+                            decs['imports'] = String(rule['imports']).split(/\s+/);
+                        }
+                        break;
+                    case 'code':
+                        codes.push(String(rule));
+                        break;
+                    case 'initial':
+                        initials.push(String(rule));
+                        break;
                     case "operators":
                         for each(var item:XML in rule.children())
                         {
@@ -67,6 +95,18 @@ package org.lala.compilercompile.utils
                         table.rules.push(r);
                         break;
                 }
+            }
+            table.decs = decs;
+            table.codes = codes;
+            table.initials = initials;
+            //开始产生式,没有指定时为第一个规则的头
+            if(String(xml.parser.@start).length)
+            {
+                table.start = String(xml.parser.@start);
+            }
+            else
+            {
+                table.start = table.rules[0].head;
             }
             return table;
         }

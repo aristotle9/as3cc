@@ -1,5 +1,8 @@
 package org.lala.compilercompile.lr0automata
 {
+    import com.maccherone.json.JSON;
+    
+    import flash.net.FileReference;
     import flash.utils.ByteArray;
     
     import org.lala.compilercompile.interfaces.IGLA;
@@ -13,7 +16,9 @@ package org.lala.compilercompile.lr0automata
     import org.lala.compilercompile.interfaces.ISymbol;
     import org.lala.compilercompile.interfaces.ISymbols;
     import org.lala.compilercompile.interfaces.ITableCell;
+    import org.lala.compilercompile.utils.ParserFile;
     import org.lala.compilercompile.utils.SimpleParser;
+    import org.lala.compilercompile.utils.TplRender;
     import org.lala.compilercompile.utils.XmlParser;
 
     public class LR0Automata
@@ -28,6 +33,7 @@ package org.lala.compilercompile.lr0automata
         protected var _parserTable:ILALRTable;
         
         protected var _srcProvider:XmlParser;
+        protected var _twoTable:Array;
         
         public function LR0Automata(srcProvider:XmlParser)
         {
@@ -279,34 +285,38 @@ package org.lala.compilercompile.lr0automata
         /** action表与goto表分开,以符号为第一坐标 **/
         public function get twoTables():Array
         {
-            var actionRows:Array = new Array;
-            var gotoRows:Array = new Array;
-            _parserTable.toAS3Array().forEach(function(cols:Array, i:int, ...args):void
+            if(_twoTable == null)
             {
-                cols.forEach(function(cell:*, j:int, ...args2):void
+                var actionRows:Array = new Array;
+                var gotoRows:Object = {};
+                _parserTable.toAS3Array().forEach(function(cols:Array, i:int, ...args):void
                 {
-                    if(cell is ITableCell)
+                    cols.forEach(function(cell:*, j:int, ...args2):void
                     {
-                        if(cell.type == TableCell.GOTO)
+                        if(cell is ITableCell)
                         {
-                            if(gotoRows[j] == null)
+                            if(cell.type == TableCell.GOTO)
                             {
-                                gotoRows[j] = new Array(_states.length - 1);
+                                if(gotoRows[j] == null)
+                                {
+                                    gotoRows[j] = {};//new Array(_states.length - 1);
+                                }
+                                gotoRows[j][i] = cell["toUint"]();
                             }
-                            gotoRows[j][i] = cell["toUint"]();
-                        }
-                        else
-                        {
-                            if(actionRows[j] == null)
+                            else
                             {
-                                actionRows[j] = new Array(_states.length - 1);
+                                if(actionRows[j] == null)
+                                {
+                                    actionRows[j] = {};//new Array(_states.length - 1);
+                                }
+                                actionRows[j][i] = cell["toUint"]();
                             }
-                            actionRows[j][i] = cell["toUint"]();
                         }
-                    }
+                    });
                 });
-            });
-            return [actionRows, gotoRows];
+                _twoTable = [actionRows, gotoRows];
+            }
+            return _twoTable;
         }
         
         /** 供解析程序使用的产生式列表,包括[产生式头id,产生式体长度] **/
@@ -358,7 +368,7 @@ package org.lala.compilercompile.lr0automata
             {
                 result.push(str);
             };
-            p("switch(pi)\r\n{");
+            p("switch(_pi)\r\n{");
             var i:uint = 1;//第一个扩展跳过
             for each(var rule:Object in _srcProvider.data.parser.rules)
             {
@@ -371,7 +381,7 @@ package org.lala.compilercompile.lr0automata
                         {
                             if(args[1] == "$")
                             {
-                                return "result";
+                                return "_result";
                             }
                             else if(args[1].length)
                             {
@@ -380,11 +390,11 @@ package org.lala.compilercompile.lr0automata
                                 {
                                     throw new Error("动作代码中$n越界:" + rule.head + " -> " + rhs.pattern.join(" ") + ",with $"+args[1]);
                                 }
-                                return "outputStack[outputStack.length - " + off + "]";
+                                return "_outputStack[_outputStack.length - " + off + "]";
                             }
                             else
                             {
-                                return "outputStack[outputStack.length - " + (parseInt(args[2]) + 1) + ']';
+                                return "_outputStack[_outputStack.length - " + (parseInt(args[2]) + 1) + ']';
                             }
                         }));
                         p("break;");
@@ -395,6 +405,23 @@ package org.lala.compilercompile.lr0automata
             p("}");
             return result.join("\r\n");
         }
+        
+        public function tableOutput():String
+        {
+            var lalrTable:Array = twoTables;
+            var ret:Array = [];
+            ret.push('_actionTable = ');
+            ret.push(JSON.encode(lalrTable[0]).replace(/"(\d+)"(?=\s*:)/g,'$1'));
+            ret.push(';_gotoTable = ');
+            ret.push(JSON.encode(lalrTable[1]).replace(/"(\d+)"(?=\s*:)/g,'$1'));
+            ret.push(';_prodList = ');
+            ret.push(JSON.encode(prds));
+            ret.push(';_inputTable = ');
+            ret.push(JSON.encode(inputSymbols));
+            ret.push(';');
+            return ret.join('\r\n');    
+        }
+        
         public function tableString():String
         {
             var result:Array = new Array;
@@ -428,6 +455,16 @@ package org.lala.compilercompile.lr0automata
             });
             result.sortOn("id", Array.NUMERIC);
             return result;
+        }
+        
+        public function saveParserFile():void
+        {
+            var fileRef:FileReference = new FileReference;
+            var render:TplRender = new TplRender();
+            var fileData:ParserFile = new ParserFile(_srcProvider.data.parser);
+            fileData.actions = actionsOutput();
+            fileData.tables = tableOutput();
+            fileRef.save(render.render(fileData.getRenderObject()), fileData.className + '.as');
         }
     }
 }
