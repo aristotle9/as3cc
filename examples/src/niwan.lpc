@@ -1,0 +1,304 @@
+/** nico脚本 **/
+/**
+语法撰写:aristotle9
+**/
+
+%lex
+%package test
+%class  Lexer
+%%
+
+\s+                                     /** skip **/
+(//|#)[^\r\n]*[\r\n]*                   /** skip **/
+/\*([^\*]+\*|\*)([^\*/][^\*]*\*|\*)*/   /** skip **/
+
+
+true|false                              return 'bool'
+[1-9]\d*|0                              $$ = parseInt($$); return 'number'
+0[0-7]+                                 $$ = parseInt($$, 8); return 'number'
+0[xX][\da-fA-F]+                        $$ = parseInt($$, 16); return 'number'
+\d*\.\d+                                $$ = parseFloat($$); return 'number'
+[a-zA-Z_$@][\w_$@]*                     return 'id'
+'([^'\\]|\\.)*'|"([^"\\]|\\.)*"         $$ = $$.substr(1, yyleng - 2); return 'string'
+
+,                                       return ','
+;                                       return ';'
+\\                                      return '\\'
+:                                       return ':'
+=                                       return '='
+:=                                      return ':='
++=                                      return '+='
+-=                                      return '-='
+*=                                      return '*='
+/=                                      return '/='
+%=                                      return '%='
+&&=                                     return '&&='
+|\|=                                    return '||='
+>>=                                     return '>>='
+\<<=                                    return '<<='
+>>>=                                    return '>>>='
+|=                                      return '|='
+&=                                      return '&='
+^=                                      return '^='
+?                                       return '?'
+|\|                                     return '||'
+&&                                      return '&&'
+|                                       return '|'
+^                                       return '^'
+&                                       return '&'
+==                                      return '=='
+!=                                      return '!='
+\<=                                     return '<='
+>=                                      return '>='
+\<                                      return '<'
+>                                       return '>'
+\<>                                     return '<>'
+\<<                                     return '<<'
+>>                                      return '>>'
+>>>                                     return '>>>'
++                                       return '+'
+-                                       return '-'
+*                                       return '*'
+/                                       return '/'
+%                                       return '%'
+~                                       return '~'
+!                                       return '!'
+*\*                                     return '**'
++\+                                     return '++'
+--                                      return '--'
+\(                                      return '('
+)                                       return ')'
+\.                                      return '.'
+\[                                      return '['
+]                                       return ']'
+\{                                      return '{'
+}                                       return '}'
+
+/lex
+
+%package test
+%class  Parser
+
+%right  PROGPROF
+%left   ','
+%left   ';'
+%right  LAMBDA
+%right  '='
+%left   '+' '-' ')' ']' '}'
+%left   '*' '/' '%'
+%left  '(' '.' '[' '{'
+
+%initial %{
+    var codes:Array = [];
+    function put(...args):void
+    {
+        codes.push([codes.length, args]);
+    }
+%}
+%start  Program
+%%
+
+Program     
+            :'/' Exprs  %prec PROGPROF
+                {
+                    $$ = {tree:['/', $2],code:codes}
+                }
+            |'/' Exprs ';' %prec PROGPROF
+                {
+                    $$ = {tree:['/', $2],code:codes}
+                }
+            ;
+            
+Exprs        /** block **/
+            :Exprs ';' E
+                {
+                    $$ = $1;
+                    $$.push($3)
+                }
+            |'(' Exprs ')'
+                {
+                    $$ = $2
+                }
+            |E %prec ';'
+                {
+                    $$ = ['Exprs',$1]
+                }
+            ;
+            
+E        
+            :E '+' E
+                {
+                    $$ = ['+', $1, $3]
+                    put('+');
+                }
+            |E '-' E
+                {
+                    $$ = ['-', $1, $3]
+                    put('-');
+                }
+            |E '*' E
+                {
+                    $$ = ['*', $1, $3]
+                    put('*');
+                }
+            |E '/' E
+                {
+                    $$ = ['/', $1, $3]
+                    put('/');
+                }
+            |E '%' E
+                {
+                    $$ = ['%', $1, $3]
+                    put('%');
+                }
+            |'\' LambdaStart Exprs %prec LAMBDA
+                {
+                    $$ = ['Lambda', $3]
+                    put('lambda_end')
+                    codes[$2][1] = ['create_lambda', codes.length]//回填
+                    //put('push', {lambda:$2})
+                }
+            |'(' E ')'
+                {
+                    $$ = $2
+                }
+            |E '.' id
+                {
+                    $$ = ['dot', $1, $3]
+                    put('attri', $3);
+                }
+            |E '[' E ']'
+                {
+                    $$ = ['member', $1, $3]
+                    put('member');
+                }
+            |E '=' E
+                {
+                    $$ = ['assign', $1, $3]
+                    put('set');
+                }
+            |FunctionCall
+            |Value
+            ;
+            
+LambdaStart 
+            :
+                {
+                    $$ = codes.length;
+                    put('label')
+                }
+            ;
+Value       
+            :number
+                {
+                    $$ = ['number', $1]
+                    put('push',$1)
+                }
+            |bool
+                {
+                    $$ = ['bool', $1]
+                    put('push',$1)
+                }
+            |string
+                {
+                    $$ = ['string', $1]
+                    put('push',$1)
+                }
+            |id
+                {
+                    $$ = ['id', $1]
+                    put('push',{id:$1})
+                }
+            |Array
+                {
+                    $$ = ['array', $1]
+                    put('array', $1.length - 1)
+                }
+            |Object
+                {
+                    $$ = ['object', $1]
+                    put('object', $1.length - 1)
+                }
+            ;
+
+Array
+            :'[' ArrayList ']'
+                {
+                    $$ = $2
+                }
+            ;
+            
+ArrayList   
+            : ArrayList ',' E
+                {
+                    $$ = $1, $$.push($3)
+                }
+            |E
+                {
+                    $$ = ['array_list', $1]
+                }
+            |
+                {
+                    $$ = ['array_list']
+                }
+            ;
+            
+Object      
+            :'{' ObjectList '}'
+                {
+                    $$ = $2
+                }
+            ;
+            
+ObjectList
+            :ObjectList ',' Name ':' E
+                {
+                    $$ = $1, $$.push({name:$3, value:$5})
+                }
+            |Name ':' E
+                {
+                    $$ = ['object_list',{name:$1, value:$3}]
+                }
+            |
+                {
+                    $$ = ['object_list']
+                }
+            ;
+
+Name
+            :id
+                {
+                    put('push', $1)
+                }
+            |string
+                {
+                    put('push', $1)
+                }
+            |number
+                {
+                    put('push', $1)
+                }
+            ;
+            
+FunctionCall
+            :E '(' Args ')'
+                {
+                    $$ = ['call', $1, $3]
+                    put('call', $3.length - 1)
+                }
+            ;
+            
+Args        
+            :Args ',' E
+                {
+                    $$ = $1, $$.push($3)
+                }
+            |E  
+                {
+                    $$ = ['args', $1]
+                }
+            |
+                {
+                    $$ = ['args']
+                }
+            ;

@@ -46,7 +46,18 @@
 <INITIAL BRACKET>.                      return 'c'
 
 /lex
-
+%package        org.lala.lex.utils.parser
+%class          RegexParser
+%lexer_name     RegexLexer
+                
+%initial        %{
+                    var code:Array = [];
+                    function put(...args):void
+                    {
+                        code.push(args);
+                    };
+                %}
+         
 %left   '|'
 %left   escc c cat '(' '['    
 %left   '-'

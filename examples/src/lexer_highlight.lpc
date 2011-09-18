@@ -2,14 +2,14 @@
 %lex
 
 /** as3程序文件相关声明 **/
-%package org.lala.ui.editor
-%class HighlightLexer
+%package org.lala.compilercompile.configs.parser
+%class ParserLexer
 
 /** 状态声明部分 **/
 %s GRAMMAR_RULE
 %x DEC DEC_COND RULE RULE_COND RULE_SPACE
 %x RULE_PATTERN RULE_TRIAL RULE_INDENT GRAMMAR_ACTION
-%x DEC_CODE
+%x DEC_CODE GRAMMAR_CODE
 %%
 
 /** 词法规则 **/
@@ -19,13 +19,23 @@
 %right                  return 'grammar_dec_right'
 %nonassoc               return 'grammar_dec_nonassoc'
 %start                  return 'grammar_dec_start'
+
 %class                  return 'grammar_dec_class'
 %package                return 'grammar_dec_package'
 %import                 return 'grammar_dec_import'
+%initial                return 'grammar_dec_initial'
 %field                  return 'grammar_dec_field'
+%lexer_name             return 'grammar_dec_lexer_name'
+
+%\{                     this.begin('GRAMMAR_CODE')
+<GRAMMAR_CODE>([^%]|%+[^%}])*%+}    %{
+                            this.begin('INITIAL'); 
+                            $$ = $$.substr(0, $$.length - 2); 
+                            return 'grammar_code'
+                        %}
 
 %%                      this.begin('GRAMMAR_RULE'); return 'grammar_rule_begin'
-[a-zA-Z][\w_\-]*        return 'grammar_id'
+[a-zA-Z][\w_\-\.\*]*    return 'grammar_id'
 \"[^"]+"|'[^']+'        $$ = $$.substr(1, yyleng - 2); return 'grammar_string'
 
 /** 语法规则 **/
@@ -45,12 +55,12 @@
 \s+                     /** skip **/
 
 /** 词法声明 **/
-<DEC>%initial           this.begin('DEC_COND'); return 'dec_initial'
 <DEC>%s                 this.begin('DEC_COND'); return 'dec_inc'
 <DEC>%x                 this.begin('DEC_COND'); return 'dec_exc'
 <DEC>%package           this.begin('DEC_COND'); return 'dec_package'
 <DEC>%class             this.begin('DEC_COND'); return 'dec_class'
 <DEC>%import            this.begin('DEC_COND'); return 'dec_import'
+<DEC>%initial           this.begin('DEC_COND'); return 'dec_initial'
 <DEC>%field             this.begin('DEC_COND'); return 'dec_field'
 
 <DEC_COND RULE_COND>[a-zA-Z_][\w_\-\.\*]*        return 'name'
@@ -70,42 +80,110 @@
 <RULE><<EOF>>                                    this.begin('RULE_SPACE'); return 'pattern'
 
 <RULE RULE_PATTERN>'([^'\\]|\\.)*'|"([^"\\]|\\.)*"         %{
-                                                                this.begin('RULE_SPACE'); 
-                                                                $$ = $$.substr(1, $$.length - 2); 
-                                                                $$ = $$.replace(/\\(.)/g,"$1"); 
-                                                                $$ = $$.replace(/[\\\*\|\?\+\[\]\(\)\^\.\-\{\}]/g,"\\$&"); 
-                                                                return 'pattern'
-                                                            %}
-<RULE>([^\[\\\<\s]|\\[^\r\n]|\[([^\\\]\r\n]|\\[^\r\n])*\])([^\s\[\\]|\\[^\r\n]|\[([^\\\]\r\n]|\\[^\r\n])*\])*        /** begin without < **/this.begin('RULE_SPACE'); return 'pattern'
-<RULE_PATTERN>([^\s\[\\]|\\[^\r\n]|\[([^\\\]\r\n]|\\[^\r\n])*\])+                                                    this.begin('RULE_SPACE'); return 'pattern'
-<RULE_SPACE>[ \t]+                                                                                                   this.begin('RULE_INDENT')
-<RULE_TRIAL>[ \t]+                                                                                                   /** skip **/
-<RULE RULE_SPACE RULE_INDENT RULE_TRIAL>\r|\n|\r\n                                                                   this.begin('RULE')
-<RULE_INDENT>\{[^}\r\n]*\}                                                                                           this.begin('RULE_TRIAL'); $$ = $$.substr(1, $$.length - 2); return 'action'
-<RULE_INDENT>%\{([^%'"]|%+[^}%'"]|"([^\\"]|\\.)*"|%+"([^\\"]|\\.)*"|'([^\\']|\\.)*'|%+'([^\\']|\\.)*')*%+}     %{
-                                                                                                                    /* support "%}" in literal string, but in comment is not support yet */
-                                                                                                                    this.begin('RULE_TRIAL'); 
-                                                                                                                    $$ = $$.substr(2, $$.length - 4); 
-                                                                                                                    return 'action'
-                                                                                                                %}
+                                        this.begin('RULE_SPACE'); 
+                                        $$ = $$.substr(1, $$.length - 2); 
+                                        $$ = $$.replace(/\\(.)/g,"$1"); 
+                                        $$ = $$.replace(/[\\\*\|\?\+\[\]\(\)\^\.\-\{\}]/g,"\\$&"); 
+                                        return 'pattern'
+                                    %}
+                                    
+<RULE>([^\[\\\<\s]|\\[^\r\n]|\[([^\\\]\r\n]|\\[^\r\n])*\])([^\s\[\\]|\\[^\r\n]|\[([^\\\]\r\n]|\\[^\r\n])*\])*        %{
+                        /** begin without < **/
+                        this.begin('RULE_SPACE'); 
+                        return 'pattern'
+                    %}
+                    
+<RULE_PATTERN>([^\s\[\\]|\\[^\r\n]|\[([^\\\]\r\n]|\\[^\r\n])*\])+           this.begin('RULE_SPACE'); return 'pattern'
+<RULE_SPACE>[ \t]+                                                          this.begin('RULE_INDENT')
+<RULE_TRIAL>[ \t]+                                                          /** skip **/
+<RULE RULE_SPACE RULE_INDENT RULE_TRIAL>\r|\n|\r\n                          this.begin('RULE')
+<RULE_INDENT>\{[^}\r\n]*\}                                                  %{
+                        this.begin('RULE_TRIAL'); 
+                        $$ = $$.substr(1, $$.length - 2); 
+                        return 'action'
+                    %}
+                    
+<RULE_INDENT>%\{([^%'"]|%+[^}%'"]|"([^\\"]|\\.)*"|%+"([^\\"]|\\.)*"|'([^\\']|\\.)*'|%+'([^\\']|\\.)*')*%+}          %{
+                        /* support "%}" in literal string, but in comment is not support yet */
+                        this.begin('RULE_TRIAL'); 
+                        $$ = $$.substr(2, $$.length - 4); 
+                        return 'action'
+                    %}
+                    
 <RULE_INDENT>[^\r\n]+               this.begin('RULE_TRIAL'); return 'action'
 
 /lex
 
 /** 词法配置部分结束 **/
+%class ParserParser
+%package org.lala.compilercompile.configs.parser
+%lexer_name ParserLexer
+
 %left    "{" "}"
 %start    Config
 %%
 
 /** 语法规则 **/
-Config : 
-        Decs grammar_rule_begin GrammarRules { $$ = {decs: $1, rules: $3}; }
+Config  
+        :Decs grammar_rule_begin GrammarRules 
+            {
+                if($1.start == null && $3.length > 0)
+                {
+                    $1.start = $3[0].head;
+                }
+                $$ = {decs: $1, rules: $3};
+            }
         ;
-Decs   :
-         Decs LexDec    { $$ = $1; $$.lex.push($2); }
-        |Decs PrecedenceDec    { $$ = $1; $$.operator.push($2); }
+Decs   
+        :Decs LexDec    { $$ = $1; $$.lex.push($2); }
+        |Decs PrecedenceDec    {
+                    $$ = $1;
+                    $2[1].forEach(function(sm:String, ...args):void
+                    {
+                        $$.operators[sm] = {preced:$$.preced, assoc: $2[0]};
+                    });
+                    $$.preced ++;
+                }
         |Decs StartDec    { $$ = $1; $$.start = $2; }
-        |/* epsilon */    { $$ = {lex:[],start:null,operator:[]}; }
+        /** as3相关声明 **/
+        |Decs ClassDec    { $$ = $1; $$.decs['class'] = $2; }
+        |Decs LexerNameDec    { $$ = $1; $$.decs['lexerName'] = $2; }
+        |Decs PackageDec    { $$ = $1; $$.decs['package'] = $2; }
+        |Decs ImportDec    { $$ = $1; $$.decs['imports'].push($2); }
+        |Decs CodeDec    { $$ = $1; $$['codes'].push($2); }
+        |Decs InitialDec    { $$ = $1; $$['initials'].push($2); }
+        |Decs FieldDec    { $$ = $1; $$['fields'][$2.name] = $2.value; }
+        |/* epsilon */    { $$ = {lex:[],start:null,operators:{}, preced:0,  
+                            decs:{'class':'', 'imports':[], 'package': '', lexerName: ''}, 
+                            codes: [], initials: [], fields:{} };
+                          }
+        ;
+ClassDec 
+        :grammar_dec_class grammar_id { $$ = $2 }
+        ;
+        
+LexerNameDec
+        :grammar_dec_lexer_name grammar_id { $$ = $2 }
+        ;
+        
+PackageDec
+        :grammar_dec_package grammar_id { $$ = $2 }
+        ;
+        
+ImportDec
+        :grammar_dec_import grammar_id { $$ = $2 }
+        ;
+        
+CodeDec
+        :grammar_code
+        ;
+        
+InitialDec
+        :grammar_dec_initial grammar_code { $$ = $2 }
+        ;
+
+FieldDec
+        :grammar_dec_field grammar_id grammar_code { $$ = {name: $2, value: $3}; }
         ;
 
 StartDec :
@@ -138,7 +216,7 @@ GrammarRules    :
         ;
 
 GrammarRule    :
-        grammar_id ":" HandleActions ";"    { $$ = {head:$1,bodies:$3}; }
+        grammar_id ":" HandleActions ";"    { $$ = {head:$1,rhs:$3}; }
         ;
 
 HandleActions    :
@@ -147,8 +225,8 @@ HandleActions    :
         ;
 
 HandleAction    :
-        Handle Prec Action    { $$ = {p:$1,prec:$2,a:$3}; }
-        |Handle Action        { $$ = {p:$1,a:$2}; }
+        Handle Prec Action    {$$ = {pattern:$1,preced:$2,action:$3};}
+        |Handle Action        {$$ = {pattern:$1,action:$2};}
         ;
 
 Handle        :
@@ -176,7 +254,9 @@ ActionBody    :
 LexDec    :
         lex_begin LexDecs rule_start Rules lex_end
         {
-            $$ = {rules:$4, states:{inclusive:[],exclusive:[]}, decs:{'imports':[], 'package':'', 'class':''}, codes:[], initials:[], fields:[]};
+            $$ = {rules:$4, states:{inclusive:[],exclusive:[]}, 
+            decs:{'imports':[], 'package':'', 'class':''}, 
+            codes:[], initials:[], fields:{}};
             $2.forEach(function(arr:Array,...args):void
             {
                 switch(arr[0])
@@ -203,7 +283,7 @@ LexDec    :
                     $$.codes.push(arr[1]);
                     break;
                 case 'field':
-                    $$.fields.push({name:arr[1], code:arr[2]});
+                    $$.fields[arr[1]] = arr[2];
                     break;
                 }
             });

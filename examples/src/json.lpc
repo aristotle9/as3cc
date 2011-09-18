@@ -1,0 +1,55 @@
+/** json **/
+%lex
+%%
+
+true                    return 'true'
+false                   return 'false'
+null                    return 'null'
+\d+                     return 'number'
+\"([^\\"]|\\.)*"        return 'string'
+[a-zA-Z_][\w_]*         return 'name'
+
+
+,                       return ','
+\{                      return '{'
+}                       return '}'
+\[                      return '['
+]                       return ']'
+:                       return ':'
+
+/lex
+%%
+Value
+        :Object
+        |Array
+        |true
+        |false
+        |string
+        |number
+        |null
+        ;
+        
+Object 
+        :'{' '}'
+        |'{' Members '}'
+        ;
+
+Members
+        :Members ',' Pair
+        |Pair
+        ;
+
+Pair    
+        :name ':' Value /** name 词法分析向看必要,区别id **/
+        ;
+
+Array   
+        :'[' ']'
+        |'[' Elements ']'
+        ;
+        
+Elements
+        :Elements ',' Value
+        |Value
+        ;
+
