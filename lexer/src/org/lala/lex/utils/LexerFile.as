@@ -9,6 +9,7 @@ package org.lala.lex.utils
         public var actions:String = '';
         public var tables:String = '';
         public var initialCode:String = '';
+        public var fields:Array = [];
         
         public function LexerFile(lexerConfig:Object)
         {
@@ -29,11 +30,19 @@ package org.lala.lex.utils
             {
                 initialCode = lexerConfig.initials.join(';\r\n') + ';\r\n';
             }
+            
+            if(lexerConfig.fields != null)
+            {
+                for(var key:String in lexerConfig.fields)
+                {
+                    fields.push(['field_'+ key, lexerConfig.fields[key]]);
+                }
+            }
         }
         
         public function getRenderObject():Object
         {
-            return {
+            var res:Object = {
                 'class' : className,
                 'package' : packageName,
                 'imports' : imports,
@@ -42,6 +51,11 @@ package org.lala.lex.utils
                 'initial' : initialCode,
                 'actions' : actions
             };
+            fields.forEach(function(p:Array,...args):void
+            {
+                res[p[0]] = p[1];
+            });
+            return res; 
         }
     }
 }
