@@ -10,6 +10,7 @@ package org.lala.compilercompile.utils
         public var actions:String = '';
         public var tables:String = '';
         public var initialCode:String = '';
+        public var fields:Array = [];
         
         public function ParserFile(parserConfig:Object)
         {
@@ -32,11 +33,19 @@ package org.lala.compilercompile.utils
             {
                 initialCode = parserConfig.initials.join(';\r\n') + ';\r\n';
             }
+            
+            if(parserConfig.fields != null)
+            {
+                for(var key:String in parserConfig.fields)
+                {
+                    fields.push(['field_'+ key, parserConfig.fields[key]]);
+                }
+            }            
         }
         
         public function getRenderObject():Object
         {
-            return {
+            var res:Object = {
                 'class' : className,
                 'lexerName' : lexerName,
                 'package' : packageName,
@@ -46,6 +55,11 @@ package org.lala.compilercompile.utils
                 'initial' : initialCode,
                 'actions' : actions
             };
+            fields.forEach(function(p:Array,...args):void
+            {
+                res[p[0]] = p[1];
+            });
+            return res; 
         }
     }
 }
