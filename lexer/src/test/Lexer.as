@@ -129,6 +129,8 @@ package test
             var _next:uint;
             var _ochar:uint;
             var _curState:uint;
+            var _lastFinalState:uint;
+            var _lastFinalPosition:uint;
             
             while(true)
             {
@@ -138,6 +140,8 @@ package test
                 _begin = _start;
                 _next = _start;
                 _ochar = uint.MAX_VALUE;
+                _lastFinalState = DEADSTATE;
+                _lastFinalPosition = _start;
                 _curState = _transTable[0][1][_initialInput];
                 while(true)
                 {
@@ -168,7 +172,7 @@ package test
                     _nextState = trans(_curState, _char);
                     if(_nextState == DEADSTATE)
                     {
-                        if(_begin == _next)
+                        if(_begin == _lastFinalPosition)
                         {
                             if(_start == _source.length)
                             {
@@ -186,12 +190,8 @@ package test
                         }
                         else
                         {
-                            _findex = _finalTable[_curState];
-                            if(_findex == null)
-                            {
-                                throw new Error("出错,line:" + position.join(",col:"));
-                            }
-                            _start = _next;
+                            _findex = _finalTable[_lastFinalState];
+                            _start = _lastFinalPosition;
                             _oldStart = _begin;
                             _yytext = _source.substring(startIdx, endIdx);
                             include "lexerActions.txt";
@@ -200,6 +200,12 @@ package test
                     }
                     else
                     {
+                        _findex = _finalTable[_nextState];
+                        if(_findex != null)
+                        {
+                            _lastFinalState = _nextState;
+                            _lastFinalPosition = _next + 1;
+                        }
                         _next += 1;
                         _curState = _nextState;
                     }
