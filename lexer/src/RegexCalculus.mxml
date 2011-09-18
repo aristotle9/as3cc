@@ -157,7 +157,7 @@
         ]]>
     </fx:Script>
     <mx:VBox width="100%" height="100%" verticalGap="0">
-        <mx:HBox width="100%" height="25" horizontalAlign="center" verticalAlign="middle" backgroundColor="#EDECDA">
+        <mx:HBox width="100%" height="25" horizontalAlign="center" verticalAlign="middle" backgroundColor="#206BA4">
             <mx:ButtonBar id="viewChanges">
                 <mx:dataProvider>
                     <fx:Array>
@@ -167,15 +167,15 @@
                 </mx:dataProvider>                
             </mx:ButtonBar>
         </mx:HBox>
-        <mx:ViewStack id="viewPanels" selectedIndex="{viewChanges.selectedIndex}" width="100%" height="100%" backgroundColor="#FFBF80">
+        <mx:ViewStack id="viewPanels" selectedIndex="{viewChanges.selectedIndex}" width="100%" height="100%" backgroundColor="#BEDF5D">
             <mx:VBox width="100%" height="100%">
                 <mx:HBox width="100%" height="30" verticalAlign="middle" horizontalAlign="center">
-                    <mx:Button id="loadFileBt" label="LoadXML" click="loadFileBt_clickHandler(event)" fillAlphas="[1.0, 1.0, 1.0, 1.0]" fillColors="[#BEDF5D, #D6EB9A]"/>
-                    <mx:Button id="saveFileBt" label="SaveTable" click="saveFileBt_clickHandler(event)" fillAlphas="[1.0, 1.0, 1.0, 1.0]" fillColors="[#BEDF5D, #D6EB9A]"/>
-                    <mx:Button id="saveActionBt" label="SaveAction" click="saveActionBt_clickHandler(event)" fillAlphas="[1.0, 1.0, 1.0, 1.0]" fillColors="[#BEDF5D, #D6EB9A]"/>
-                    <mx:Button id="saveRawTableBt" label="SingleFile" click="saveRawTableBt_clickHandler(event)" fillAlphas="[1.0, 1.0, 1.0, 1.0]" fillColors="[#BEDF5D, #D6EB9A]"/>
-                    <mx:Button id="saveHtmlBt" label="HTML" click="saveHtmlBt_clickHandler(event)" fillAlphas="[1.0, 1.0, 1.0, 1.0]" fillColors="[#BEDF5D, #D6EB9A]"/>
-                    <mx:Button label="CleanLog" id="testCleanBt" click="testOutputText.text=''" fillAlphas="[1.0, 1.0, 1.0, 1.0]" fillColors="[#BEDF5D, #D6EB9A]"/>    
+                    <mx:Button id="loadFileBt" label="LoadConfig" click="loadFileBt_clickHandler(event)"/>
+                    <mx:Button id="saveFileBt" label="SaveTable" click="saveFileBt_clickHandler(event)"/>
+                    <mx:Button id="saveActionBt" label="SaveAction" click="saveActionBt_clickHandler(event)"/>
+                    <mx:Button id="saveRawTableBt" label="SingleFile" click="saveRawTableBt_clickHandler(event)"/>
+                    <mx:Button id="saveHtmlBt" label="ExportHTML" click="saveHtmlBt_clickHandler(event)"/>
+                    <mx:Button label="CleanLog" id="testCleanBt" click="testOutputText.text=''"/>    
                 </mx:HBox>
                 <editor:HighlightEditor id="testInputText" height="85%" width="100%">
                 </editor:HighlightEditor>

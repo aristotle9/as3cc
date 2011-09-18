@@ -1,13 +1,15 @@
 package org.lala.ui.editor
 {
+    import org.lala.lex.configs.parser.LexLexer;
+
     internal final class HighlightAssist
     {
         private static var _instance:HighlightAssist;
         
-        private var _lexer:HighlightLexer;
+        private var _lexer:LexLexer;
         public function HighlightAssist()
         {
-            _lexer = new HighlightLexer;
+            _lexer = new LexLexer;
         }
         public function lexInfo(src:String):Array
         {

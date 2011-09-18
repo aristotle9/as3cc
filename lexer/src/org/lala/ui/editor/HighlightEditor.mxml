@@ -18,14 +18,14 @@
             /** 样式定义 **/
             protected const cssString:String = 
                 ".lex_begin,.lex_end,.rule_start,.grammar_begin,.grammar_rule_begin{color:#880000;font-weight:bold;font-size:13px;font-family:Consolas;}" +
-                ".dec_initial,.dec_inc,.dec_exc,.dec_package,.dec_class,.dec_import,.dec_field{color:#4F94CD;font-weight:bold;font-size:13px;font-family:Consolas;}" +
+                ".dec_initial,.dec_inc,.dec_exc,.dec_package,.dec_class,.dec_import,.dec_field{color:#206ba4;font-weight:bold;font-size:13px;font-family:Consolas;}" +
                 ".name{color:#660066;font-weight:normal;font-size:13px;font-family:Consolas;}" +
                 ".lb,.rb{color: #666600;font-weight:normal;font-size:13px;font-family:Consolas;}" +//<>
                 ".pattern{color:#0068CF;font-weight:normal;font-size:13px;font-family:Consolas;}" +
                 ".comment{color: #008800;font-weight:normal;font-size:13px;font-family:Consolas;}" +
                 ".action{color:#000088;font-weight:normal;font-size:13px;font-family:Consolas;}" +
-                ".code,.lex_code{color:#006666;font-weight:normal;font-size:13px;font-family:Consolas;}" +
-                ".grammar_dec_prec,.grammar_dec_left,.grammar_dec_right,.grammar_dec_nonassoc,.grammar_dec_start,.grammar_dec_class,.grammar_dec_package,.grammar_dec_import,.grammar_dec_field" +
+                ".code,.lex_code,.grammar_code{color:#006666;font-weight:normal;font-size:13px;font-family:Consolas;}" +
+                ".grammar_dec_initial,.grammar_dec_lexer_name,.grammar_dec_prec,.grammar_dec_left,.grammar_dec_right,.grammar_dec_nonassoc,.grammar_dec_start,.grammar_dec_class,.grammar_dec_package,.grammar_dec_import,.grammar_dec_field" +
                 "{color:#BF3F00;font-weight:bold;font-size:13px;font-family:Consolas;}" +
                 ".grammar_id{color:#0068CF;font-weight:normal;font-size:13px;font-family:Consolas;}" +
                 ".grammar_string{color:#B400B4;font-weight:normal;font-size:13px;font-family:Consolas;}" +
