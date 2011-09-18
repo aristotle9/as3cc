@@ -159,11 +159,11 @@
         </mx:TileList>
         <mx:ViewStack id="vstk" creationPolicy="all" width="100%" height="100%">
             <mx:VBox>
-                <mx:HBox>
-                    <mx:Button id="loadXmlBt" label="LoadXML" click="loadXmlBt_clickHandler(event)" />
+                <mx:HBox width="100%" horizontalAlign="center">
+                    <mx:Button id="loadXmlBt" label="LoadConfig" click="loadXmlBt_clickHandler(event)" />
                     <mx:Button id="tableDataBt" label="TableData" click="tableDataBt_clickHandler(event)" />
                     <mx:Button id="actionTextBt" label="ActionText" click="actionTextBt_clickHandler(event)" />
-                    <mx:Button id="fileTextBt" label="FileText" click="fileTextBt_clickHandler(event)" />
+                    <mx:Button id="fileTextBt" label="SingleFile" click="fileTextBt_clickHandler(event)" />
                 </mx:HBox>
             </mx:VBox>
             <mx:VBox horizontalAlign="center">

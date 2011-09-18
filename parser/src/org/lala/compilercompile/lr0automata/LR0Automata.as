@@ -102,6 +102,10 @@ package org.lala.compilercompile.lr0automata
             });
             _symbols.defineSymbol("E'", false);
             /** 使用XML格式的语法文件解析结果来初始化产生式 **/
+            if(_srcProvider.data.parser.start == null)
+            {
+                throw new Error("没有开始终结符");
+            }
             _startProduction = _productions.createProduction("E'", _srcProvider.data.parser.start, "<$>");
             var production:IProduction;
             for each(var rule:Object in _srcProvider.data.parser.rules)
@@ -418,7 +422,21 @@ package org.lala.compilercompile.lr0automata
             ret.push(';_prodList = ');
             ret.push(JSON.encode(prds));
             ret.push(';_inputTable = ');
-            ret.push(JSON.encode(inputSymbols));
+            //使table的值从0开始
+            var symbolTable:Array = [];
+            var str:String = JSON.encode(inputSymbols);
+            str.replace(/("(?:[^"\\]|\\.)*")\s*:\s*(\d+)/g, function(...args):String
+            {
+                symbolTable[parseInt(args[2])] = args[0];
+                return '';
+            });
+            symbolTable = symbolTable.filter(function(it:*, ...args):Boolean
+            {
+                if(it == null)
+                    return false;
+                return true;
+            });
+            ret.push('{' + symbolTable.join(',') + '}');
             ret.push(';');
             return ret.join('\r\n');    
         }
