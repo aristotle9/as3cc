@@ -341,7 +341,7 @@ package org.lala.lex.utils
             });
             if(errorInfo.length)
             {
-                throw new Error('词法文件错误:@' + errorInfo.join(",\r"));
+                throw new Error('词法文件错误:@' + errorInfo.join(",\r\n"));
             }
             //输入集的inputs已经稳定
             if(states === null)

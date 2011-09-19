@@ -50,7 +50,16 @@ package org.lala.lex.nfa
         }
         public function getInput4All():Vector.<IInput>
         {
-            return _list.slice();
+            var ipt1:IInput = getInput4Char('\r');
+            var ipt2:IInput = getInput4Char('\n');
+            return _list.filter(function(ipt:IInput,...args):Boolean
+            {
+                if(ipt == ipt1 || ipt == ipt2)
+                {
+                    return false;
+                }
+                return true;
+            });
         }
         public function every(foo:Function):void
         {

@@ -1,11 +1,13 @@
 package org.lala.lex.utils
 {
+    import org.lala.lex.interfaces.IBottle;
     import org.lala.lex.interfaces.IEdge;
     import org.lala.lex.interfaces.IInput;
     import org.lala.lex.interfaces.IInputSet;
     import org.lala.lex.interfaces.INFA;
     import org.lala.lex.interfaces.ISet;
     import org.lala.lex.interfaces.IState;
+    import org.lala.lex.nfa.Bottle;
     import org.lala.lex.nfa.InputSet;
     import org.lala.lex.nfa.NFA;
     import org.lala.lex.nfa.Set;
@@ -48,7 +50,7 @@ package org.lala.lex.utils
             var inputs:ISet;
             var from:int;
             var to:int;
-            var bottleSize:uint = 0;
+            var bottleSize:uint = _bottleIndex;
             
             var instr:Array;
             var operand:Array;
@@ -89,11 +91,13 @@ package org.lala.lex.utils
                                     ipts.push(_inputSet.getInput4Char("\t"));
                                     ipts.push(_inputSet.getInput4Char("\r"));
                                     ipts.push(_inputSet.getInput4Char("\n"));
+                                    ipts.push(_inputSet.getInput4Char("\f"));
                                     break;
                                 case '\\w':
                                     ipts = _inputSet.getInput4Range(0x30, 0x39);
                                     ipts = ipts.concat((_inputSet.getInput4Range(0x61, 0x7a)));
                                     ipts = ipts.concat((_inputSet.getInput4Range(0x41, 0x5a)));
+                                    ipts.push(_inputSet.getInput4Char("_"));
                                     break;
                             }
                             ipts.forEach(function(ipt:IInput, ... args):void
@@ -198,6 +202,8 @@ package org.lala.lex.utils
                             }
                             return false;
                         });
+                        sea.updateBottles.merge(nfaS.entry.updateBottles);
+                        sea.catchBottles.merge(nfaS.entry.catchBottles);
                         nfaS.removeState(nfaS.entry);
                         nfaT.removeExit(sea);
                         nfaT.states.merge(nfaS.states);
@@ -246,6 +252,21 @@ package org.lala.lex.utils
                         nfaT.addState(sb);
                         nfaT.entry = sa;
                         nfaT.addExit(sb);
+                        _workStack.push(nfaT);
+                        break;
+                    case 'trailla'://trail lookahead
+                        //一个正则表达式最多只有一个捕捉,并且位于最后第二个位置,最后是cat
+                        //验证
+                        if(_workStack.length != 2 || i != _code.length - 2)
+                        {
+                            throw new Error('无法构造NFA,不正确的尾部正向预查.');
+                        }
+                        var bottle:IBottle = new Bottle(bottleSize);
+                        bottleSize ++;
+                        nfaT = _workStack.pop();
+                        nfaT.entry.updateBottles.add(bottle);
+                        sa = nfaT.exits.fetch() as IState;
+                        sa.catchBottles.add(bottle);
                         _workStack.push(nfaT);
                         break;
                 }

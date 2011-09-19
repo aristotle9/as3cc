@@ -1,128 +1,134 @@
-switch(pi)
+switch(_pi)
 {
 case 0x1:
-put('or');
+ put('or'); 
+break;
+case 0x2:
+
+break;
+case 0x3:
+
 break;
 case 0x4:
-put('star');
+ put('star'); 
 break;
 case 0x5:
-put('more');
+ put('more'); 
 break;
 case 0x6:
-put('ask');
+ put('ask');  
 break;
 case 0x7:
-put('include', outputStack[outputStack.length - 2]);
+ put('include', _outputStack[_outputStack.length - 2]); 
 break;
 case 0x8:
-put('exclude', outputStack[outputStack.length - 2]);
+ put('exclude', _outputStack[_outputStack.length - 2]); 
 break;
 case 0x9:
-put('cat');
+ put('cat'); 
 break;
 case 0xA:
-put('single');
+ put('single'); 
 break;
 case 0xB:
 
-                result = outputStack[outputStack.length - 2] - 1;
-                while(result > 0)
-                {
-                    put('dupl');
-                    result --;
-                }
-                result = outputStack[outputStack.length - 2] - 1;
-                while(result > 0)
-                {
-                    put('cat');
-                    result --;
-                }
-                
+                        _result = _outputStack[_outputStack.length - 2] - 1;
+                        while(_result > 0)
+                        {
+                            put('dupl');
+                            _result --;
+                        }
+                        _result = _outputStack[_outputStack.length - 2] - 1;
+                        while(_result > 0)
+                        {
+                            put('cat');
+                            _result --;
+                        }
+                    
 break;
 case 0xC:
 
-                put('ask');
-                result = outputStack[outputStack.length - 2] - 1;
-                while(result > 0)
-                {
-                    put('dupl');
-                    result --;
-                }
-                result = outputStack[outputStack.length - 2] - 1;
-                while(result > 0)
-                {
-                    put('cat');
-                    result --;
-                }
-                
+                            put('ask');
+                            _result = _outputStack[_outputStack.length - 2] - 1;
+                            while(_result > 0)
+                            {
+                                put('dupl');
+                                _result --;
+                            }
+                            _result = _outputStack[_outputStack.length - 2] - 1;
+                            while(_result > 0)
+                            {
+                                put('cat');
+                                _result --;
+                            }
+                        
 break;
 case 0xD:
 
-                if(outputStack[outputStack.length - 4] > outputStack[outputStack.length - 2])
-                {
-                    result = outputStack[outputStack.length - 4];
-                    outputStack[outputStack.length - 4] = outputStack[outputStack.length - 2];
-                    outputStack[outputStack.length - 2] = result;
-                }
-                result = outputStack[outputStack.length - 4] - 1;
-                while(result > 0)
-                {
-                    put('dupl');
-                    result --;
-                }
-                result = outputStack[outputStack.length - 2] - outputStack[outputStack.length - 4];
-                if(result > 0)
-                {
-                    put('dupl');
-                    put('ask');
-                    while(result > 1)
-                    {
-                        put('dupl');
-                        result --;
-                    }
-                }
-                result = outputStack[outputStack.length - 2] - 1;
-                while(result > 0)
-                {
-                    put('cat');
-                    result --;
-                }
-                
+                                if(_outputStack[_outputStack.length - 4] > _outputStack[_outputStack.length - 2])
+                                {
+                                    _result = _outputStack[_outputStack.length - 4];
+                                    _outputStack[_outputStack.length - 4] = _outputStack[_outputStack.length - 2];
+                                    _outputStack[_outputStack.length - 2] = _result;
+                                }
+                                _result = _outputStack[_outputStack.length - 4] - 1;
+                                while(_result > 0)
+                                {
+                                    put('dupl');
+                                    _result --;
+                                }
+                                _result = _outputStack[_outputStack.length - 2] - _outputStack[_outputStack.length - 4];
+                                if(_result > 0)
+                                {
+                                    put('dupl');
+                                    put('ask');
+                                    while(_result > 1)
+                                    {
+                                        put('dupl');
+                                        _result --;
+                                    }
+                                }
+                                _result = _outputStack[_outputStack.length - 2] - 1;
+                                while(_result > 0)
+                                {
+                                    put('cat');
+                                    _result --;
+                                }
+                            
 break;
 case 0xE:
 
-                result = outputStack[outputStack.length - 3];
-                while(result > 0)
-                {
-                    put('dupl');
-                    result --;
-                }
-                put('star');
-                result = outputStack[outputStack.length - 3];
-                while(result > 0)
-                {
-                    put('cat');
-                    result --;
-                }
-                
+                                _result = _outputStack[_outputStack.length - 3];
+                                while(_result > 0)
+                                {
+                                    put('dupl');
+                                    _result --;
+                                }
+                                put('star');
+                                _result = _outputStack[_outputStack.length - 3];
+                                while(_result > 0)
+                                {
+                                    put('cat');
+                                    _result --;
+                                }
+                            
 break;
 case 0xF:
-result = outputStack[outputStack.length - 4]; result ++; put('c',outputStack[outputStack.length - 3]); put('c',outputStack[outputStack.length - 1]); put('range');
+ _result = _outputStack[_outputStack.length - 4]; _result ++; put('c',_outputStack[_outputStack.length - 3]); put('c',_outputStack[_outputStack.length - 1]); put('range'); 
 break;
 case 0x10:
-result = outputStack[outputStack.length - 2]; result ++; put('single');
+ _result = _outputStack[_outputStack.length - 2]; _result ++; put('single'); 
 break;
 case 0x11:
-put('single'); result = 1;
+ put('single'); _result = 1; 
 break;
 case 0x12:
-put('c',outputStack[outputStack.length - 3]); put('c',outputStack[outputStack.length - 1]); put('range'); result = 1;
+ put('c',_outputStack[_outputStack.length - 3]); put('c',_outputStack[_outputStack.length - 1]); put('range'); _result = 1; 
 break;
 case 0x13:
-put('c',outputStack[outputStack.length - 1]);
+ put('c',_outputStack[_outputStack.length - 1]); 
 break;
 case 0x14:
-put('escc', outputStack[outputStack.length - 1]);
+ put('escc', _outputStack[_outputStack.length - 1]); 
 break;
 }
