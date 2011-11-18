@@ -4,8 +4,30 @@
 **/
 
 %lex
-%package test
+%package org.lala.niwan.parser
 %class  Lexer
+%{
+    private function escapeText(str:String):String
+    {
+        return str.replace(/\\(.)/g, function(...args):String
+        {
+            switch(args[1])
+            {
+                case 't':
+                    return '\t';
+                case 'n':
+                    return '\n';
+                case 'r':
+                    return '\r';
+                case 'f':
+                    return '\f';
+                default:
+                    return args[1];
+            }
+            return args[1];
+        });
+    }
+%}
 %%
 
 \s+                                     /** skip **/
@@ -13,13 +35,16 @@
 /\*([^\*]+\*|\*)([^\*/][^\*]*\*|\*)*/   /** skip **/
 
 
-true|false                              return 'bool'
+true                                    $$ = true; return 'bool'
+false                                   $$ = false; return 'bool'
+null                                    $$ = null; return 'string'
 [1-9]\d*|0                              $$ = parseInt($$); return 'number'
 0[0-7]+                                 $$ = parseInt($$, 8); return 'number'
-0[xX][\da-fA-F]+                        $$ = parseInt($$, 16); return 'number'
 \d*\.\d+                                $$ = parseFloat($$); return 'number'
+(\d+(\.\d+)?|\.\d+)([eE][+\-]?\d+)?     $$ = parseFloat($$); return 'number'
+0[xX][\da-fA-F]+                        $$ = parseInt($$, 16); return 'number'
 [a-zA-Z_$@][\w_$@]*                     return 'id'
-'([^'\\]|\\.)*'|"([^"\\]|\\.)*"         $$ = $$.substr(1, yyleng - 2); return 'string'
+'([^'\\]|\\.)*'|"([^"\\]|\\.)*"         $$ = $$.substr(1, yyleng - 2); $$ = escapeText($$); return 'string'
 
 ,                                       return ','
 ;                                       return ';'
@@ -76,87 +101,227 @@ true|false                              return 'bool'
 
 /lex
 
-%package test
+%package org.lala.niwan.parser
 %class  Parser
+%lexer_name Lexer
+
+/** 类型系统,用于推断表示 **/
+%import org.lala.niwan.types.TypeClass
+/** 结点类 **/
+%import org.lala.niwan.ast.Node
 
 %right  PROGPROF
 %left   ','
 %left   ';'
 %right  LAMBDA
-%right  '='
-%left   '+' '-' ')' ']' '}'
+%left   ':'
+%right  '=' ':=' '+=' '-=' '*=' '/=' '%=' '>>=' '<<=' '>>>=' '|=' '&=' '^='
+%left   '||'
+%left   '&&'
+%left   '|'
+%left   '^'
+%left   '&'
+%left   '==' '!=' '<=' '>=' '<' '>' '<>'
+%left   '<<' '>>' '>>>'
+%left   '+' '-'
 %left   '*' '/' '%'
-%left  '(' '.' '[' '{'
+%left   '~' '!'
+%left   '**'
+%left   '++' '--'
+%left  '(' '.' '[' '{' ')' ']' '}'
+
+%start  Program
 
 %initial %{
-    var codes:Array = [];
-    function put(...args):void
-    {
-        codes.push([codes.length, args]);
-    }
+    var type:TypeClass;
 %}
-%start  Program
-%%
 
+%%
+/** 
+    根据解析实践测试表明,有以下几个语法未实现:
+    拉姆达表达式中的逗号分隔: \(a=0,b=a+1)
+    空分号: ;i+=1;;b+=i;
+    一种默认参数形式: f(,,,4,,,6)
+    表达式参数的一种写法def('f',(a+b,c+d))//使用括号将逗号表达式作为一个表达式参数
+    空的点号表达式 .i.y = 90;
+
+todo:
+    直接添加这些语法导致RR冲突
+    可以考虑实现两种表达式序列:
+    一种可以用逗号分隔,普遍的表达式序列
+    一种是在参数中使用,不能用逗号分隔
+    修补一些语法:
+    '.' id = id
+**/
 Program     
-            :'/' Exprs  %prec PROGPROF
+            :'/' ExprsWithCommas  %prec PROGPROF
                 {
-                    $$ = {tree:['/', $2],code:codes}
-                }
-            |'/' Exprs ';' %prec PROGPROF
-                {
-                    $$ = {tree:['/', $2],code:codes}
+                    $$ = new Node('program', $2.type, $2);
                 }
             ;
-            
-Exprs        /** block **/
+
+ExprsWithCommas
+            :ExprsWithCommas ',' Exprs
+                {
+                    $$ = $1;
+                    $$.nodes = $$.nodes.concat($3.nodes);
+                    $$.type = $3.type;
+                }
+            |ExprsWithCommas ','
+            |Exprs %prec ','
+            |',' Exprs
+                {
+                    $$ = $2
+                }
+            |','
+                {
+                    $$ = new Node('exprs', TypeClass.UnitType);
+                }
+            ;
+
+Exprs        /** block **//** 无逗号表达式序列,可以是空分号 **/
             :Exprs ';' E
                 {
                     $$ = $1;
-                    $$.push($3)
+                    $$.nodes.push($3)
+                    $$.type = $3.type
                 }
-            |'(' Exprs ')'
+            |Exprs ';'
+            |'(' ExprsWithCommas ')'
                 {
                     $$ = $2
                 }
             |E %prec ';'
                 {
-                    $$ = ['Exprs',$1]
+                    $$ = new Node('exprs', $1.type, $1);
+                }
+            |';' E
+                {
+                    $$ = new Node('exprs', $2.type, $2);
+                }
+            |';'
+                {
+                    $$ = new Node('exprs', TypeClass.UnitType);
                 }
             ;
             
 E        
             :E '+' E
                 {
-                    $$ = ['+', $1, $3]
-                    put('+');
+                    if($1.type == TypeClass.StringType)
+                    {
+                        type = TypeClass.StringType;
+                    }
+                    else
+                    {
+                        type = TypeClass.NumberType
+                    }
+                    $$ = new Node('additive', type, $1, $3);
+                    $$.attri = '+'
                 }
             |E '-' E
                 {
-                    $$ = ['-', $1, $3]
-                    put('-');
+                    $$ = new Node('additive', TypeClass.NumberType, $1, $3);
+                    $$.attri = '-'
                 }
             |E '*' E
                 {
-                    $$ = ['*', $1, $3]
-                    put('*');
+                    $$ = new Node('multiplicative', TypeClass.NumberType, $1, $3);
+                    $$.attri = '*'
                 }
             |E '/' E
                 {
-                    $$ = ['/', $1, $3]
-                    put('/');
+                    $$ = new Node('multiplicative', TypeClass.NumberType, $1, $3);
+                    $$.attri = '/'
                 }
             |E '%' E
                 {
-                    $$ = ['%', $1, $3]
-                    put('%');
+                    $$ = new Node('multiplicative', TypeClass.NumberType, $1, $3);
+                    $$.attri = '%'
                 }
-            |'\' LambdaStart Exprs %prec LAMBDA
+            |E RelOp E %prec '=='
                 {
-                    $$ = ['Lambda', $3]
-                    put('lambda_end')
-                    codes[$2][1] = ['create_lambda', codes.length]//回填
-                    //put('push', {lambda:$2})
+                    $$ = new Node('relational', TypeClass.BooleanType, $1, $3);
+                    $$.attri = $2
+                }
+            |E BitShiftOp E %prec '<<'
+                {
+                    $$ = new Node('bitshift', TypeClass.NumberType, $1, $3);
+                    $$.attri = $2
+                }
+            |E '||' E
+                {
+                    $$ = new Node('logical', TypeClass.BooleanType, $1, $3);
+                    $$.attri = '||'
+                }
+            |E '&&' E
+                {
+                    $$ = new Node('logical', TypeClass.BooleanType, $1, $3);
+                    $$.attri = '&&'
+                }
+            |E '|' E
+                {
+                    $$ = new Node('bitwise', TypeClass.NumberType, $1, $3);
+                    $$.attri = '|'
+                }
+            |E '^' E
+                {
+                    $$ = new Node('bitwise', TypeClass.NumberType, $1, $3);
+                    $$.attri = '^'
+                }
+            |E '&' E
+                {
+                    $$ = new Node('bitwise', TypeClass.NumberType, $1, $3);
+                    $$.attri = '&'
+                }
+            |E '**' E
+                {
+                    $$ = new Node('power', TypeClass.NumberType, $1, $3);
+                    $$.attri = '**'
+                }
+            |'\' ExprsWithCommas %prec LAMBDA
+                {
+                    $$ = new Node('lambda', TypeClass.LambdaType, $2);
+                }
+            |E '++'
+                {
+                    $$ = new Node('unary_assignment', TypeClass.NumberType, $1);
+                    $$.attri = 'f++'
+                }
+            |E '--'
+                {
+                    $$ = new Node('unary_assignment', TypeClass.NumberType, $1);
+                    $$.attri = 'f--'
+                }
+            |'++' E
+                {
+                    $$ = new Node('unary_assignment', TypeClass.NumberType, $2);
+                    $$.attri = '++f'
+                }
+            |'--' E
+                {
+                    $$ = new Node('unary_assignment', TypeClass.NumberType, $2);
+                    $$.attri = '--f'
+                }
+            |'+' E %prec '!'
+                {
+                    $$ = new Node('prefix_unary', TypeClass.NumberType, $2);
+                    $$.attri = '+f'
+                }
+            |'-' E %prec '!'
+                {
+                    $$ = new Node('prefix_unary', TypeClass.NumberType, $2);
+                    $$.attri = '-f'
+                }
+            |'!' E
+                {
+                    $$ = new Node('prefix_unary', TypeClass.BooleanType, $2);
+                    $$.attri = '!f'
+                }
+            |'~' E
+                {
+                    $$ = new Node('prefix_unary', TypeClass.NumberType, $2);
+                    $$.attri = '~f'
                 }
             |'(' E ')'
                 {
@@ -164,141 +329,198 @@ E
                 }
             |E '.' id
                 {
-                    $$ = ['dot', $1, $3]
-                    put('attri', $3);
+                    $$ = new Node('dot', TypeClass.AnyType, $1);
+                    $$.attri = $3
                 }
-            |E '[' E ']'
+            |E AssignOP E %prec '='
                 {
-                    $$ = ['member', $1, $3]
-                    put('member');
+                    $$ = new Node('assignment', $3.type, $1, $3);
+                    $$.attri = $2
                 }
-            |E '=' E
-                {
-                    $$ = ['assign', $1, $3]
-                    put('set');
-                }
+            |IndexCall
             |FunctionCall
-            |Value
+            |Primary
             ;
             
-LambdaStart 
-            :
-                {
-                    $$ = codes.length;
-                    put('label')
-                }
-            ;
-Value       
+Primary       
             :number
                 {
-                    $$ = ['number', $1]
-                    put('push',$1)
+                    $$ = new Node('number', TypeClass.NumberType);
+                    $$.attri = $1
                 }
             |bool
                 {
-                    $$ = ['bool', $1]
-                    put('push',$1)
+                    $$ = new Node('bool', TypeClass.BooleanType);
+                    $$.attri = $1
                 }
             |string
                 {
-                    $$ = ['string', $1]
-                    put('push',$1)
+                    $$ = new Node('string', TypeClass.StringType);
+                    $$.attri = $1
                 }
             |id
                 {
-                    $$ = ['id', $1]
-                    put('push',{id:$1})
+                    $$ = new Node('id');
+                    $$.attri = $1
                 }
+            |'.' id
+                {
+                    $$ = new Node('id');
+                    $$.attri = $2
+                }            
             |Array
-                {
-                    $$ = ['array', $1]
-                    put('array', $1.length - 1)
-                }
             |Object
-                {
-                    $$ = ['object', $1]
-                    put('object', $1.length - 1)
-                }
             ;
 
 Array
             :'[' ArrayList ']'
                 {
-                    $$ = $2
+                    $$ = new Node('array', TypeClass.ArrayType);
+                    $$.attri = $2
                 }
             ;
             
 ArrayList   
             : ArrayList ',' E
                 {
-                    $$ = $1, $$.push($3)
+                    $$ = $1
+                    $$.attri.push($3)
                 }
             |E
                 {
-                    $$ = ['array_list', $1]
+                    $$ = new Node('array_list');
+                    $$.attri = [$1]
                 }
             |
                 {
-                    $$ = ['array_list']
+                    $$ = new Node('array_list');
+                    $$.attri = []
                 }
             ;
             
 Object      
             :'{' ObjectList '}'
                 {
-                    $$ = $2
+                    $$ = new Node('object', TypeClass.ObjectType);
+                    $$.attri = $2
                 }
             ;
             
 ObjectList
             :ObjectList ',' Name ':' E
                 {
-                    $$ = $1, $$.push({name:$3, value:$5})
+                    $$ = $1
+                    $$.attri.push({name:$3, value:$5})
                 }
             |Name ':' E
                 {
-                    $$ = ['object_list',{name:$1, value:$3}]
+                    $$ = new Node('object_list');
+                    $$.attri = [{name:$1, value:$3}]
                 }
             |
                 {
-                    $$ = ['object_list']
+                    $$ = new Node('object_list');
+                    $$.attri = []
                 }
             ;
 
 Name
             :id
-                {
-                    put('push', $1)
-                }
             |string
-                {
-                    put('push', $1)
-                }
             |number
-                {
-                    put('push', $1)
-                }
             ;
             
+IndexCall /** 因为[]可以是index,也可以是lambda call **/
+            :E Array
+                {
+                    $$ = new Node('index', TypeClass.AnyType, $1, $2);
+                }
+            ;
+
 FunctionCall
             :E '(' Args ')'
                 {
-                    $$ = ['call', $1, $3]
-                    put('call', $3.length - 1)
+                    $$ = new Node('call', TypeClass.AnyType, $1, $3);
+                }
+            |E '(' ')'
+                {
+                    $$ = new Node('args');
+                    $$.attri = [];
+                    $$ = new Node('call', TypeClass.AnyType, $1, $$);
                 }
             ;
             
 Args        
-            :Args ',' E
+            :Args ',' Name ':' Exprs
                 {
-                    $$ = $1, $$.push($3)
+                    $$ = $1
+                    $$.attri.push([$3, $5])
                 }
-            |E  
+            |Args ',' Exprs
                 {
-                    $$ = ['args', $1]
+                    $$ = $1
+                    $$.attri.push([$3])
                 }
-            |
+            |Args ','
                 {
-                    $$ = ['args']
+                    $$ = $1
+                    $$.attri.push([])
                 }
+            |Name ':' Exprs  
+                {
+                    $$ = new Node('args');
+                    $$.attri = [[$1, $3]]
+                }
+            |Exprs  
+                {
+                    $$ = new Node('args');
+                    $$.attri = [[$1]]
+                }
+            |',' Name ':' Exprs
+                {
+                    $$ = new Node('args');
+                    $$.attri= [[], [$2, $4]]
+                }
+            |',' Exprs
+                {
+                    $$ = new Node('args');
+                    $$.attri= [[], [$2]]
+                }
+            |','
+                {
+                    $$ = new Node('args');
+                    $$.attri = [[],[]]
+                }
+            ;
+            
+RelOp       
+            :'=='
+            |'!='
+            |'<='
+            |'>='
+            |'<'
+            |'>'
+            |'<>'
+            ;
+            
+AssignOP
+            :'='
+            |':='
+            |'+='
+            |'-='
+            |'*='
+            |'/='
+            |'%='
+            |'>>='
+            |'<<='
+            |'>>>='
+            |'|='
+            |'&='
+            |'^='
+            ;
+            
+BitShiftOp
+            :'<<'
+            |'>>'
+            |'>>>'
             ;

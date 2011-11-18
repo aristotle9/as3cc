@@ -5,19 +5,26 @@
 /* 声明区,声明起始状态集 */
 %s state1 state2 /* 扩展状态集 */
 %x state3 state4 /* 排外状态集 */
+%field f1 %{field1%}
 %%
 /* 词法规则区 **/
 /* 正则表达式        动作  **/
-0[xX][\da-zA-Z]+    return 'hex';
+/*0[xX][\da-zA-Z]+    return 'hex';
 \d+                 return 'int';
 \+                  return '+';
 \-                  return '-';
-/                   return '/';
+/                   return '/';*/
+
+.
+(abcd|abc)(?=d)
+(a|ab)(?=ba)
+aa*(?=a*)
 /* <起始状态>正则表达式        动作  **/
 <state3>\*                   return '*';
 
 /**词法声明结束 **/
 /lex
+%field f2 %{field2%}
 /* 运算符优先级与结合性,处理s/r冲突 */
 %left '+' '-'
 %left '*' '/'

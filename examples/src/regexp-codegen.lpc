@@ -63,10 +63,14 @@
 %left   '-'
 %left   '*' '?' '+' '{'
 %left   ')' ']'
-%start  R
 
 %%
-
+RegExp
+        : R
+            {
+                $$ = code;
+            }
+        ;
 R       
         :R '|' R     { put('or'); }
         |'(' R ')'  
