@@ -2,7 +2,6 @@ package org.lala.lex.utils
 {
     import com.maccherone.json.JSON;
     
-    import flash.net.FileReference;
     import flash.utils.ByteArray;
     
     import org.lala.lex.interfaces.IInput;
@@ -110,14 +109,16 @@ package org.lala.lex.utils
             return RegexUtil.nfa_dot(_dfa);
         }
         
-        public function saveLexerFile():void
+        public function saveLexerFile():Object
         {
-            var fileRef:FileReference = new FileReference;
             var render:TplRender = new TplRender;
             var fileData:LexerFile = new LexerFile(_config.lexer);
             fileData.actions = actionString;
             fileData.tables = tableString;
-            fileRef.save(render.render(fileData.getRenderObject()), fileData.className + '.as');
+            return {
+				data: render.render(fileData.getRenderObject()),
+				name: fileData.className + '.as'
+			};
         }
     }
 }
