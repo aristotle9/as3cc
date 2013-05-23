@@ -1,20 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:Canvas xmlns:fx="http://ns.adobe.com/mxml/2009" 
-           xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%" creationComplete="canvas1_creationCompleteHandler(event)">
-    <fx:Script>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="100%" creationComplete="canvas1_creationCompleteHandler(event)">
+    <mx:Script>
         <![CDATA[
-            import mx.controls.textClasses.TextRange;
-            import mx.events.FlexEvent;
-            import mx.events.ItemClickEvent;
-            import mx.events.ScrollEvent;
-            import mx.events.ScrollEventDirection;
-            
-            import org.lala.ui.editor.commands.DeleteLinesCommand;
-            import org.lala.ui.editor.commands.IndentCommand;
-            import org.lala.ui.editor.commands.OpenCommand;
-            import org.lala.ui.editor.commands.SaveCommand;
-            import org.lala.ui.editor.commands.UnIndentCommand;
-            import org.lala.ui.editor.interfaces.ICommand;
+			import mx.binding.utils.BindingUtils;
+			import mx.controls.textClasses.TextRange;
+			import mx.events.FlexEvent;
+			import mx.events.ItemClickEvent;
+			import mx.events.ResizeEvent;
+			import mx.events.ScrollEvent;
+			import mx.events.ScrollEventDirection;
+			
+			import org.lala.ui.editor.commands.DeleteLinesCommand;
+			import org.lala.ui.editor.commands.IndentCommand;
+			import org.lala.ui.editor.commands.OpenCommand;
+			import org.lala.ui.editor.commands.SaveCommand;
+			import org.lala.ui.editor.commands.UnIndentCommand;
+			import org.lala.ui.editor.interfaces.ICommand;
             /** 样式定义 **/
             protected const cssString:String = 
                 ".lex_begin,.lex_end,.rule_start,.grammar_begin,.grammar_rule_begin{color:#880000;font-weight:bold;font-size:13px;font-family:Consolas;}" +
@@ -33,10 +34,14 @@
                 ".plain{color:#000000;font-weight:normal;font-size:13px;font-family:Consolas;}";
             /** 样式数据 **/
             [Bindable] protected var codeStyle:StyleSheet;
+			/** 样式表 **/
+			protected var fmtMap:Object;
+			/** 编辑区 **/
+			protected var textField:TextField;
             /** 冷却时间 **/
             protected var coldTimer:Timer;
-            
-            [Bindable]public var text:String;
+            /** 是否已经更改 **/
+			protected var changed:Boolean = false;
             [Bindable]public var htmlText:String;
             
             public function exportAsHtml():String
@@ -53,55 +58,114 @@
             
             protected function canvas1_creationCompleteHandler(event:FlexEvent):void
             {
-                /** 解析定义文本 **/
+				textField = new TextField();
+				textField.type = TextFieldType.INPUT;
+				textField.multiline = true;
+				textField.border = true;
+				textField.backgroundColor = 0xFFFFE1;
+				textField.background = true;
+				textField.addEventListener(Event.CHANGE, needColor);
+				textField.addEventListener(FocusEvent.KEY_FOCUS_CHANGE, editor_keyFocusChangeHandler);
+				tfBox.addChild(textField);
+                
+				/** 解析定义文本 **/
                 codeStyle = new StyleSheet;
                 codeStyle.parseCSS(cssString);
-                coldTimer = new Timer(200, 1);
-                coldTimer.addEventListener(TimerEvent.TIMER_COMPLETE, colorIt);
+				fmtMap = {};
+				for each(var name:String in codeStyle.styleNames)
+				{
+					fmtMap[name] = codeStyle.transform(codeStyle.getStyle(name));
+				}
+				textField.defaultTextFormat = fmtMap[".plain"];
+
+				coldTimer = new Timer(500);
+                coldTimer.addEventListener(TimerEvent.TIMER, colorIt);
+                coldTimer.start();
             }
             
-            protected function needColor():void
+            protected function needColor(event:Event=null):void
             {
-                if(!coldTimer.running)
-                {
-                    coldTimer.start();
-                }
-                else
-                {
-                    coldTimer.reset();
-                }
+				changed = true;
             }
             
             protected function colorIt(event:Event=null):void
             {
-                var lexInfo:Array = HighlightAssist.getInstance().lexInfo(editor.text);
-                var tr:TextRange;
-                var lastIndex:uint = 0;
+				if(!changed)
+					return;
+				
+				changed = false;
+//				viewer.htmlText = genHTMLHightlightCode(editor.text);
+//                viewer.styleSheet = codeStyle;
+				setTextFieldHightlightCode(textField, fmtMap);
+			}
+			
+            protected function genHTMLHightlightCode(src:String):String
+            {
+                var lexInfo:Array = HighlightAssist.getInstance().lexInfo(src);
                 var result:Array = new Array;
-                var oldRange:Array = [0, 0, 0];
+                var tr:TextRange;
+
+				var oldRange:Array = [0, 0, 0];
                 lexInfo.forEach(function(info:Array,...args):void
                 {
                     if(oldRange[2] != info[1])
                     {
-                        result.push('<span class="plain">' + htmlEscape(text.substring(oldRange[2], info[1])) + '</span>');
+                        result.push('<span class="plain">' + htmlEscape(src.substring(oldRange[2], info[1])) + '</span>');
                     }
-                    if(/[a-z_\-\d\.]+/i.test(String(info[0])))
-                        result.push('<span class="' + info[0] + '">' + htmlEscape(text.substring(info[1],info[2])) + '</span>');
+                    if(/[a-z_\-\d\.]+/i.test(String(info[0])))//这里是返回的token名称与css class建立关系,因为css名称的合法字符原因,token名需要筛选
+                        result.push('<span class="' + info[0] + '">' + htmlEscape(src.substring(info[1],info[2])) + '</span>');
                     else
-                        result.push('<span class="plain">' + htmlEscape(text.substring(info[1],info[2])) + '</span>');
+                        result.push('<span class="plain">' + htmlEscape(src.substring(info[1],info[2])) + '</span>');
                     oldRange = info;
                 });
+				//处理最后是否需要一个普通token
+				var lastIndex:uint = 0;
                 if(lexInfo.length > 0)
                 {
                     lastIndex = lexInfo[lexInfo.length - 1][2];
                 }
-                if(lastIndex <= editor.length - 1)
+                if(lastIndex <= src.length - 1)
                 {
-                    result.push('<span class="plain">' + htmlEscape(text.substring(lastIndex, text.length)) + '</span>');
+                    result.push('<span class="plain">' + htmlEscape(src.substring(lastIndex, src.length)) + '</span>');
                 }
-                htmlText = '';
-                htmlText = result.join('');
-                viewer.styleSheet = codeStyle;
+                return result.join('');
+            }
+			
+            private function setTextFieldHightlightCode(tf:TextField, fmtMap:Object):void
+            {
+                var lexInfo:Array = HighlightAssist.getInstance().lexInfo(tf.text);
+                var result:Array = new Array;
+//                var tr:TextRange;
+
+				var oldRange:Array = [0, 0, 0];
+				//clear fmt
+				tf.setTextFormat(fmtMap[".plain"]);
+                lexInfo.forEach(function(info:Array,...args):void
+                {
+                    if(oldRange[2] != info[1])
+                    {
+//                        result.push('<span class="plain">' + htmlEscape(text.substring(oldRange[2], info[1])) + '</span>');
+						tf.setTextFormat(fmtMap[".plain"], oldRange[2], info[1]);
+                    }
+                    if(/[a-z_\-\d\.]+/i.test(String(info[0])))//这里是返回的token名称与css class建立关系,因为css名称的合法字符原因,token名需要筛选
+//                        result.push('<span class="' + info[0] + '">' + htmlEscape(text.substring(info[1],info[2])) + '</span>');
+						tf.setTextFormat(fmtMap["." + info[0]], info[1], info[2]);
+                    else
+//                        result.push('<span class="plain">' + htmlEscape(text.substring(info[1],info[2])) + '</span>');
+						tf.setTextFormat(fmtMap[".plain"], info[1], info[2]);
+                    oldRange = info;
+                });
+				//处理最后是否需要一个普通token
+				var lastIndex:uint = 0;
+                if(lexInfo.length > 0)
+                {
+                    lastIndex = lexInfo[lexInfo.length - 1][2];
+                }
+                if(lastIndex <= tf.length - 1)
+                {
+//                    result.push('<span class="plain">' + htmlEscape(text.substring(lastIndex, text.length)) + '</span>');
+					tf.setTextFormat(fmtMap[".plain"], lastIndex, tf.length);
+                }
             }
             
             private function htmlEscape(str:String):String
@@ -124,11 +188,11 @@
                 event.preventDefault();
                 if(event.shiftKey == false)
                 {
-                    cmd = new IndentCommand(editor);
+                    cmd = new IndentCommand(textField);
                 }
                 else
                 {
-                    cmd = new UnIndentCommand(editor);
+                    cmd = new UnIndentCommand(textField);
                 }
                 cmd.exec();
             }
@@ -143,29 +207,34 @@
                 switch(event.item.label)
                 {
                     case "openFile":
-                        cmd = new OpenCommand(editor);
+                        cmd = new OpenCommand(textField);
                         break;
                     case "saveFile":
-                        cmd = new SaveCommand(editor);
+                        cmd = new SaveCommand(textField);
                         break;
                     case "delLines":
-                        cmd = new DeleteLinesCommand(editor);
+//                        cmd = new DeleteLinesCommand(editor);
                         break;
                 }
                 if(cmd != null)
                 {
                     cmd.exec();
                 }
-                editor.setFocus();
+//                editor.setFocus();
             }
 
 
             protected function editor_scrollHandler(event:ScrollEvent):void
             {
                 if(event.direction == ScrollEventDirection.VERTICAL)
-                    viewer.verticalScrollPosition = editor.verticalScrollPosition;
+				{
+//                    viewer.verticalScrollPosition = editor.verticalScrollPosition;
+//					textField.scrollV = editor.verticalScrollPosition;
+				}
                 else
-                    viewer.horizontalScrollPosition = editor.horizontalScrollPosition;
+				{
+//                    viewer.horizontalScrollPosition = editor.horizontalScrollPosition;
+				}
             }
 
             protected function viewer_scrollHandler(event:ScrollEvent):void
@@ -176,25 +245,35 @@
 //                    editor.horizontalScrollPosition = viewer.horizontalScrollPosition;
             }
 
-        ]]>
-    </fx:Script>
+			protected function tfBox_resizeHandler(event:ResizeEvent):void
+			{
+				if(textField !== null)
+				{
+					textField.width = tfBox.width;
+					textField.height = tfBox.height;
+				}
+			}
+			
+		]]>
+    </mx:Script>
     <mx:VBox width="100%" height="100%" verticalGap="1">
     <mx:ButtonBar height="20" itemClick="buttonbar1_itemClickHandler(event)" toolTipField="tip" labelField="label">
         <mx:dataProvider>
-            <fx:Array>
-                <fx:Object tip="打开文件" label="openFile"/>
-                <fx:Object tip="保存文件" label="saveFile"/>
-                <fx:Object tip="删除行" label="delLines"/>
-            </fx:Array>
+            <mx:Array>
+                <mx:Object tip="打开文件" label="openFile"/>
+                <mx:Object tip="保存文件" label="saveFile"/>
+                <mx:Object tip="删除行" label="delLines"/>
+            </mx:Array>
         </mx:dataProvider>
     </mx:ButtonBar>
         <mx:HBox width="100%" height="100%" horizontalGap="0">
             <mx:Canvas width="20" height="100%" backgroundColor="#BBD9EE"/>
             <mx:VDividedBox width="100%" height="100%">
-                <mx:TextArea height="100%" id="viewer" htmlText="{this.htmlText}" scroll="viewer_scrollHandler(event)" backgroundColor="#FFFFE1" color="#003344" wordWrap="false" width="100%" focusThickness="0">
-                </mx:TextArea>
-                <mx:TextArea height="100%" id="editor" change="needColor()" scroll="editor_scrollHandler(event)" text="@{this.text}" backgroundColor="#FFFFE1" fontFamily="Consolas" fontSize="13" color="#003344" wordWrap="false" keyFocusChange="editor_keyFocusChangeHandler(event)" keyDown="editor_keyDownHandler(event)" width="100%" focusThickness="0">
-                </mx:TextArea>
+                <!--<mx:TextArea height="100%" id="viewer" htmlText="{this.htmlText}" scroll="viewer_scrollHandler(event)" backgroundColor="#FFFFE1" color="#003344" wordWrap="false" width="100%" focusThickness="0">
+                </mx:TextArea>-->
+                <!--<mx:TextArea height="100%" id="editor" change="needColor()" scroll="editor_scrollHandler(event)" backgroundColor="#FFFFE1" fontFamily="Consolas" fontSize="13" color="#003344" wordWrap="false" keyFocusChange="editor_keyFocusChangeHandler(event)" keyDown="editor_keyDownHandler(event)" width="100%" focusThickness="0">
+                </mx:TextArea>-->
+					<mx:UIComponent id="tfBox" height="100%" width="100%" resize="tfBox_resizeHandler(event)"/>
             </mx:VDividedBox>
         </mx:HBox>
     </mx:VBox>

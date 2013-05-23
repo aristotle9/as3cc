@@ -1,15 +1,14 @@
 package org.lala.ui.editor.commands
 {
     import flash.events.Event;
-    
-    import mx.controls.TextArea;
+    import flash.text.TextField;
     
     import org.lala.ui.editor.interfaces.ICommand;
     
     public class UnIndentCommand implements ICommand
     {
-        private var _target:TextArea;
-        public function UnIndentCommand(target:TextArea)
+        private var _target:TextField;
+        public function UnIndentCommand(target:TextField)
         {
             _target = target;
         }
@@ -60,8 +59,8 @@ package org.lala.ui.editor.commands
             left = _target.text.substr(0, lineHead);
             right = _target.text.substring(_target.selectionEndIndex);
             _target.text = left + nt + right;
-            _target.selectionBeginIndex -= foffset;
-            _target.selectionEndIndex -= offset;
+//            _target.selectionBeginIndex -= foffset;
+//            _target.selectionEndIndex -= offset;
             
             _target.dispatchEvent(new Event(Event.CHANGE,true,false));
         }

@@ -1,15 +1,14 @@
 package org.lala.ui.editor.commands
 {
     import flash.events.Event;
-    
-    import mx.controls.TextArea;
+    import flash.text.TextField;
     
     import org.lala.ui.editor.interfaces.ICommand;
     
     public class IndentCommand implements ICommand
     {
-        private var _target:TextArea;
-        public function IndentCommand(target:TextArea)
+        private var _target:TextField;
+        public function IndentCommand(target:TextField)
         {
             _target = target;
         }
@@ -24,8 +23,8 @@ package org.lala.ui.editor.commands
                 var left:String = _target.text.substr(0, _target.selectionBeginIndex);
                 var right:String = _target.text.substring(_target.selectionBeginIndex);
                 _target.text = left + '    ' + right;
-                _target.selectionBeginIndex += 4;
-                _target.selectionEndIndex += 4;
+//                _target.selectionBeginIndex += 4;
+//                _target.selectionEndIndex += 4;
             }
             else
             {
@@ -51,8 +50,8 @@ package org.lala.ui.editor.commands
                 left = _target.text.substr(0, lineHead);
                 right = _target.text.substring(_target.selectionEndIndex);
                 _target.text = left + '    ' + nt + right;
-                _target.selectionBeginIndex += 4;
-                _target.selectionEndIndex += ntext.length * 4;
+//                _target.selectionBeginIndex += 4;
+//                _target.selectionEndIndex += ntext.length * 4;
             }
             _target.dispatchEvent(new Event(Event.CHANGE,true,false));
         }

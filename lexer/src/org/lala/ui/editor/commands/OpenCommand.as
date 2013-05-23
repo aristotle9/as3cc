@@ -3,15 +3,14 @@ package org.lala.ui.editor.commands
     import flash.events.Event;
     import flash.net.FileFilter;
     import flash.net.FileReference;
-    
-    import mx.controls.TextArea;
+    import flash.text.TextField;
     
     import org.lala.ui.editor.interfaces.ICommand;
     
     public class OpenCommand implements ICommand
     {
-        private var _target:TextArea;
-        public function OpenCommand(target:TextArea)
+        private var _target:TextField;
+        public function OpenCommand(target:TextField)
         {
             _target = target;
         }
