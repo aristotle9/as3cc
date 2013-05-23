@@ -1,10 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
-                xmlns:mx="library://ns.adobe.com/flex/mx" layout="absolute" minWidth="300" minHeight="200" creationComplete="application1_creationCompleteHandler(event)" creationPolicy="all" xmlns:editor="org.lala.ui.editor.*" backgroundColor="#FFFFFF">
-    <fx:Metadata>
+<mx:Application 
+    xmlns:mx="http://www.adobe.com/2006/mxml"
+	xmlns:editor="org.lala.ui.editor.*" 
+	layout="absolute" minWidth="300" minHeight="200"
+	creationComplete="application1_creationCompleteHandler(event)" creationPolicy="all"
+	backgroundColor="#FFFFFF">
+    <mx:Metadata>
         [SWF(width="750",height="525")]
-    </fx:Metadata>
-    <fx:Script>
+    </mx:Metadata>
+    <mx:Script>
         <![CDATA[
             import com.maccherone.json.JSON;
             
@@ -16,6 +20,7 @@
             import org.lala.lex.interfaces.IInputSet;
             import org.lala.lex.interfaces.INFA;
             import org.lala.lex.nfa.InputSet;
+            import org.lala.lex.utils.CFileGenerator;
             import org.lala.lex.utils.LexerGenerator;
             import org.lala.lex.utils.NFAUtil;
             import org.lala.lex.utils.RegToken;
@@ -145,7 +150,9 @@
 
             protected function saveRawTableBt_clickHandler(event:MouseEvent):void
             {
-                lexerGenerator.saveLexerFile();
+				var fRef:FileReference = new FileReference();
+                var result:Object = lexerGenerator.saveLexerFile();
+				fRef.save(result.data, result.name);
             }
 
             protected function saveHtmlBt_clickHandler(event:MouseEvent):void
@@ -154,16 +161,23 @@
                 fileRef.save(testInputText.exportAsHtml(), "code.html");
             }
 
+            protected function cLangTablesBt_clickHandler(event:MouseEvent):void
+            {
+                var cg:CFileGenerator = new CFileGenerator(lexerGenerator.tableBytes);
+//                trace(cg.getInputArray());
+//                trace(cg.getStates());
+            }
+
         ]]>
-    </fx:Script>
+    </mx:Script>
     <mx:VBox width="100%" height="100%" verticalGap="0">
         <mx:HBox width="100%" height="25" horizontalAlign="center" verticalAlign="middle" backgroundColor="#206BA4">
             <mx:ButtonBar id="viewChanges">
                 <mx:dataProvider>
-                    <fx:Array>
-                        <fx:String>LexerGenerator</fx:String>
-                        <fx:String>RegularExpression</fx:String>
-                    </fx:Array>
+                    <mx:Array>
+                        <mx:String>LexerGenerator</mx:String>
+                        <mx:String>RegularExpression</mx:String>
+                    </mx:Array>
                 </mx:dataProvider>                
             </mx:ButtonBar>
         </mx:HBox>
@@ -174,6 +188,7 @@
                     <mx:Button id="saveFileBt" label="SaveTable" click="saveFileBt_clickHandler(event)"/>
                     <mx:Button id="saveActionBt" label="SaveAction" click="saveActionBt_clickHandler(event)"/>
                     <mx:Button id="saveRawTableBt" label="SingleFile" click="saveRawTableBt_clickHandler(event)"/>
+                    <mx:Button id="cLangTablesBt" label="CTables" click="cLangTablesBt_clickHandler(event)"/>
                     <mx:Button id="saveHtmlBt" label="ExportHTML" click="saveHtmlBt_clickHandler(event)"/>
                     <mx:Button label="CleanLog" id="testCleanBt" click="testOutputText.text=''"/>    
                 </mx:HBox>
