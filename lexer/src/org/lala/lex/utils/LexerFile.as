@@ -18,7 +18,8 @@ package org.lala.lex.utils
                 if(lexerConfig.decs['class'] != '')
                     className = lexerConfig.decs['class'];
                 packageName = lexerConfig.decs['package'];
-                imports = lexerConfig.decs['imports'].join(';\r\n') + ';\r\n';
+                if(lexerConfig.decs['imports'].length > 0)
+                    imports = 'import ' + lexerConfig.decs['imports'].join(';\r\nimport ') + ';\r\n';
             }
             
             if(lexerConfig.codes != null)
