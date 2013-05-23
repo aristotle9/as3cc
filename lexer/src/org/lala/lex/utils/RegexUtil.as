@@ -4,8 +4,6 @@ package org.lala.lex.utils
     
     import flash.utils.ByteArray;
     
-    import mx.utils.Base64Encoder;
-    
     import org.lala.lex.interfaces.IBottle;
     import org.lala.lex.interfaces.IEdge;
     import org.lala.lex.interfaces.IInput;
