@@ -1,0 +1,65 @@
+/** 草泥马语:似乎只要词法分析机(语言不够递归) **/
+
+%lex
+
+/** 因为有指令与操作数,标签之别,人工定义二个状态 **/
+%x NUM LB
+%%
+/** 因为模式前缀不会是另一个模式,不需要特意调整模式顺序 **/
+草草               begin('NUM'); return 'stack_op'
+草马草             return 'stack_op'
+草泥草             begin('NUM'); return 'stack_op'
+草马泥             return 'stack_op'
+草马马             return 'stack_op'
+草泥马             begin('NUM'); return 'stack_op'
+
+    
+泥草草草            return 'arith_op'
+泥草草泥            return 'arith_op'
+泥草草马            return 'arith_op'
+泥草泥草            return 'arith_op'
+泥草泥泥            return 'arith_op'
+
+泥泥草              return 'heap_op'
+泥泥泥              return 'heap_op'
+
+马草草              begin('LB'); return 'flowctrl_op'
+马草泥              begin('LB'); return 'flowctrl_op'
+马草马              begin('LB'); return 'flowctrl_op'
+马泥草              begin('LB'); return 'flowctrl_op'
+马泥泥              begin('LB'); return 'flowctrl_op'
+马泥马              return 'flowctrl_op'
+马马马|河蟹         return 'flowctrl_op'
+
+泥马草草            return 'io_op'
+泥马草泥            return 'io_op'
+泥马泥草            return 'io_op'
+泥马泥泥            return 'io_op'
+
+<LB>[草泥]+马      begin('INITIAL');return 'label'
+
+<NUM>[草泥]+马      begin('INITIAL');return 'number'
+
+\s+                 /** skip **/
+/lex
+
+%start GMHFile
+%%
+/** 草泥马的文法,泥马的这是正则文法 **/
+GMHFile
+        :Codes
+        ;
+        
+Codes   :Codes Code
+        |
+        ;
+        
+Code
+        :stack_op number
+        |stack_op
+        |arith_op
+        |heap_op
+        |flowctrl_op label
+        |flowctrl_op
+        |io_op
+        ;
