@@ -135,7 +135,7 @@ package org.lala.lex.nfa
             {
                 result.push(str);
             }
-            p(_id);
+            p(_id.toString());
             if(_final)
             {
                 p("final:" + String(_data));
