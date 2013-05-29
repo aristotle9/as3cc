@@ -1,11 +1,7 @@
 package org.lala.lex.utils.parser
 {
-    import flash.utils.ByteArray;
-    
     public class RegexParser
     {
-        [Embed(source="parserData.dat", mimeType="application/octet-stream")]
-        protected var DataArrays:Class;
         protected var _actionTable:Array;
         protected var _gotoTable:Object;
         protected var _prodList:Array;
@@ -15,13 +11,7 @@ package org.lala.lex.utils.parser
         
         public function RegexParser()
         {
-            var encoded:ByteArray = new DataArrays() as ByteArray;
-            encoded.inflate();
-            _actionTable = encoded.readObject() as Array;
-            _gotoTable = encoded.readObject() as Object;
-            _prodList = encoded.readObject() as Array;
-            _inputTable = encoded.readObject() as Object;
-            
+            include "parserData.txt";
             lexer = new RegexLexer;
         }
         
