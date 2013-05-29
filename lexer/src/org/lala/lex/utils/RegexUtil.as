@@ -626,7 +626,7 @@ package org.lala.lex.utils
             {
                 return (i != 0 && i % 4 == 0 ? "\n[" : '[') + item.join() + ']';
             });
-            return 'stateTrans = [' + table1.join(",\n") + '];\nfinalIndices = [' + finalTable[0].join() + '];\nfinalNames = '+ JSON.encode(finalTable[1]) + ';\ninputTrans = [' + table2.join() + '];';  
+            return 'stateTrans = [' + table1.join(",\n") + '];\nfinalIndices = [' + finalTable[0].join() + '];\nfinalNames = '+ com.maccherone.json.JSON.encode(finalTable[1]) + ';\ninputTrans = [' + table2.join() + '];';  
         }
         /** 表格数据压缩 **/
         public static function TABLES_COMPRESS(stateTable:Array,finalTable:Object,inputTable:Array,statesInputTable:Object):ByteArray

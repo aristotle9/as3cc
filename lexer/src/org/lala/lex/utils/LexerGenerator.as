@@ -93,13 +93,13 @@ package org.lala.lex.utils
         {
             var ret:Array = [];
             ret.push('_transTable = ');
-            ret.push(JSON.encode(_stateTrans));
+            ret.push(com.maccherone.json.JSON.encode(_stateTrans));
             ret.push(';_finalTable = ');
-            ret.push(JSON.encode(_finalIndices).replace(/"(\d+)"(?=\s*:)/g,'$1'));
+            ret.push(com.maccherone.json.JSON.encode(_finalIndices).replace(/"(\d+)"(?=\s*:)/g,'$1'));
             ret.push(';_inputTable = ');
-            ret.push(JSON.encode(_inputTrans));
+            ret.push(com.maccherone.json.JSON.encode(_inputTrans));
             ret.push(';_initialTable = ');
-            ret.push(JSON.encode(_statesInputTable));
+            ret.push(com.maccherone.json.JSON.encode(_statesInputTable));
             ret.push(';');
             return ret.join('\r\n');
         }
