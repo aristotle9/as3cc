@@ -68,7 +68,7 @@ package org.lala.lex.utils
             /** 起始状态(字符串)到输入ID的转换表 **/
             var statesInputTable:Object = RegexUtil.DFA_INPUT_STATES(_dfa, fgTable[0]);
             /** 压缩 [压缩的转换表,最终状态表,从字符编码到输入的等价ID的表,起始状态表] **/
-            _byte = RegexUtil.TABLES_COMPRESS(fgTable, finalStates, _dfa.inputSet.inputTable(), statesInputTable);
+//            _byte = RegexUtil.TABLES_COMPRESS(fgTable, finalStates, _dfa.inputSet.inputTable(), statesInputTable);
             
             _stateTrans = fgTable;
             _finalIndices = finalStates;
