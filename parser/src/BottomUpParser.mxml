@@ -140,7 +140,9 @@
 
             protected function fileTextBt_clickHandler(event:MouseEvent):void
             {
-                lr0a.saveParserFile();
+                var result:Object = lr0a.saveParserFile();
+				var fileRef:FileReference = new FileReference;
+				fileRef.save(result.data, result.name);
             }
 
         ]]>

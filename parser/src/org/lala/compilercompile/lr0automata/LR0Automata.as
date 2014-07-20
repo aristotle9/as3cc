@@ -2,7 +2,6 @@ package org.lala.compilercompile.lr0automata
 {
     import com.maccherone.json.JSON;
     
-    import flash.net.FileReference;
     import flash.utils.ByteArray;
     
     import org.lala.compilercompile.interfaces.IConfig;
@@ -18,7 +17,7 @@ package org.lala.compilercompile.lr0automata
     import org.lala.compilercompile.interfaces.ISymbols;
     import org.lala.compilercompile.interfaces.ITableCell;
     import org.lala.compilercompile.utils.ParserFile;
-    import org.lala.compilercompile.utils.SimpleParser;
+//    import org.lala.compilercompile.utils.SimpleParser;
     import org.lala.compilercompile.utils.TplRender;
     import org.lala.compilercompile.utils.XmlParser;
 
@@ -476,14 +475,17 @@ package org.lala.compilercompile.lr0automata
             return result;
         }
         
-        public function saveParserFile():void
+        public function saveParserFile():Object
         {
-            var fileRef:FileReference = new FileReference;
             var render:TplRender = new TplRender();
             var fileData:ParserFile = new ParserFile(_srcProvider.data.parser);
             fileData.actions = actionsOutput();
             fileData.tables = tableOutput();
-            fileRef.save(render.render(fileData.getRenderObject()), fileData.className + '.as');
+			return {
+				data: render.render(fileData.getRenderObject()),
+				name: fileData.className + '.as'
+			};
+            
         }
     }
 }
