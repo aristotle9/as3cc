@@ -97,6 +97,15 @@ package org.lala.compilercompile.utils
                 }
             }
         }
+
+		public static function parse(source:String):Object
+		{
+			var lexer:<{ lexerName }> = new <{ lexerName }>();
+			lexer.source = source;
+			var parser:<{ class }> = new <{ class }>();
+			var result:Object = parser.parse(lexer);
+			return result;
+		}
     }
 }]]></r>); 
     }

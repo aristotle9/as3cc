@@ -291,6 +291,21 @@ package org.lala.lex.utils
             _initialState = value;
             _initialInput = _initialTable[value];
         }
+
+		public static function lex_seq(source:String):Array
+		{
+			var lexer:<{ class }> = new <{ class }>();
+			lexer.source = source;
+			var tokens:Array = [];
+			var token:String = lexer.token;
+			while(token != '<$>')
+			{
+				tokens.push({token: token, text: lexer.yytext, start: lexer.startIdx, end: lexer.endIdx});
+				lexer.advance();
+				token = lexer.token;
+			}
+			return tokens;
+		}
     }
 }
 ]]></r>);
