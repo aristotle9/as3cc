@@ -21,7 +21,7 @@ package org.lala.compilercompile.utils
                 if(parserConfig.decs['lexerName'] != '')
                     lexerName = parserConfig.decs['lexerName'];
                 packageName = parserConfig.decs['package'];
-                imports = parserConfig.decs['imports'].join(';\r\n') + ';\r\n';
+                imports = parserConfig.decs['imports'].map(function(cls:String, ...args):String { return 'import ' + cls;}).join(';\r\n') + (parserConfig.decs['imports'].length > 0 ? ';\r\n' : '');
             }
             
             if(parserConfig.codes != null)
