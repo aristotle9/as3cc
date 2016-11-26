@@ -111,14 +111,52 @@ package org.lala.lex.utils
         
         public function saveLexerFile():Object
         {
-            var render:TplRender = new TplRender;
-            var fileData:LexerFile = new LexerFile(_config.lexer);
-            fileData.actions = actionString;
-            fileData.tables = tableString;
+			var data:String;
+			var fileName: String;
+			var fileData:LexerFile = new LexerFile(_config.lexer);
+			
+			var outputType:String = _config.lexer.fields.output_type;
+			
+			if(outputType == null)
+				outputType = OutputFileType.ACTIONSCRIPT3;
+			
+			if(outputType == OutputFileType.ACTIONSCRIPT3)
+			{
+				fileData.actions = actionString;
+				fileData.tables = tableString;
+
+				data = (new TplRender()).render(fileData.getRenderObject());
+				fileName = fileData.className + '.as';
+			}
+			else if(outputType == OutputFileType.JAVA)
+			{
+	            fileData.actions = JavaFileGenerator.getActions(_config);
+	            fileData.tables = javaTableString;
+				
+				data = (new JavaTplRender()).render(fileData.getRenderObject())
+				fileName = fileData.className + '.java';
+			}
+			
             return {
-				data: render.render(fileData.getRenderObject()),
-				name: fileData.className + '.as'
+				data: data,
+				name: fileName
 			};
         }
+		
+		public function get javaTableString():String
+		{
+			var jFileGen: JavaFileGenerator = new JavaFileGenerator(this._stateTrans, this._finalIndices, this._inputTrans, this._statesInputTable);
+			var ret:Array = [];
+			ret.push('_transTable = ');
+			ret.push(jFileGen.transTable);
+			ret.push(';_finalTable = ');
+			ret.push(jFileGen.finalTable);
+			ret.push(';_inputTable = ');
+			ret.push(jFileGen.inputTable);
+			ret.push(';_initialTable = ');
+			ret.push(jFileGen.initialTable);
+			ret.push(';');
+			return ret.join('\r\n');
+		}
     }
 }

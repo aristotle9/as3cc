@@ -50,7 +50,8 @@ package org.lala.lex.utils
                 'usercode' : userCode,
                 'tables' : tables,
                 'initial' : initialCode,
-                'actions' : actions
+                'actions' : actions,
+				'create_date' : new Date()
             };
             fields.forEach(function(p:Array,...args):void
             {

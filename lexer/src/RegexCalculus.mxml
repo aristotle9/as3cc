@@ -163,9 +163,11 @@
 
             protected function cLangTablesBt_clickHandler(event:MouseEvent):void
             {
-                var cg:CFileGenerator = new CFileGenerator(lexerGenerator.tableBytes);
+//                var cg:CFileGenerator = new CFileGenerator(lexerGenerator.tableBytes);
 //                trace(cg.getInputArray());
 //                trace(cg.getStates());
+				trace(lexerGenerator.javaTableString);
+				trace(lexerGenerator.actionString);
             }
 
         ]]>

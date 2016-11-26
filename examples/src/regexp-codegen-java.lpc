@@ -1,0 +1,176 @@
+/** 正则表达式分析 **/
+
+%lex
+
+%class      RegexLexer
+%field      package %{package    org.lala.lex.utils.parser;
+%}
+%field      output_type  %{java%}
+%{
+    public void setToken(String value) {
+        _tokenName = value;
+    }
+%}
+
+%x          BRACKET REPEAT
+
+%%
+
+\*                                      return "*"
+\+                                      return "+"
+\?                                      return "?"
+\|                                      return "|"
+\(                                      return "("
+\)                                      return ")"
+
+\[                                      this.begin("BRACKET"); return "["
+<BRACKET>\^                             return "^"
+<BRACKET>\-                             return "-"
+<BRACKET>\]                             this.begin("INITIAL"); return "]"
+
+\{                                      this.begin("REPEAT"); return "{"
+<REPEAT>,                               return ","
+<REPEAT>\d+                             $$ = Integer.valueOf((String)$$); return "d"
+<REPEAT>[ \t]+                          /* skip */
+<REPEAT>\}                              this.begin("INITIAL"); return "}"
+
+<INITIAL BRACKET>\\0[0-7]{2}            $$ = Character.toString((char)Integer.parseInt(((String)$$).substring(2, 4), 8)); return "c"
+<INITIAL BRACKET>\\x[\da-fA-F]{2}       $$ = Character.toString((char)Integer.parseInt(((String)$$).substring(2, 4), 16)); return "c"
+<INITIAL BRACKET>\\u[\da-fA-F]{4}       $$ = Character.toString((char)Integer.parseInt(((String)$$).substring(2, 6), 16)); return "c"
+<INITIAL BRACKET>\\[dsw]|\.             return "escc"
+<INITIAL BRACKET>\\r                    $$ = "\r"; return "c"
+<INITIAL BRACKET>\\n                    $$ = "\n"; return "c"
+<INITIAL BRACKET>\\t                    $$ = "\t"; return "c"
+<INITIAL BRACKET>\\b                    $$ = "\b"; return "c"
+<INITIAL BRACKET>\\f                    $$ = "\f"; return "c"
+<INITIAL BRACKET>\\.                    $$ = ((String)$$).substring(1, 2); return "c"
+<INITIAL BRACKET>.                      return "c"
+
+/lex
+%package        org.lala.lex.utils.parser
+%class          RegexParser
+%lexer_name     RegexLexer
+
+%initial        %{
+                    var code:Array = [];
+                    function put(...args):void
+                    {
+                        code.push(args);
+                    };
+                %}
+
+%left   '|'
+%left   escc c cat '(' '['
+%left   '-'
+%left   '*' '?' '+' '{'
+%left   ')' ']'
+
+%%
+RegExp
+        : R
+            {
+                $$ = code;
+            }
+        ;
+R
+        :R '|' R     { put('or'); }
+        |'(' R ')'
+        |R Rp   %prec '*'
+        |R '*'  { put('star'); }
+        |R '+'  { put('more'); }
+        |R '?'  { put('ask');  }
+        |'[' IR ']'     { put('include', $2); }
+        |'[' '^' IR ']' { put('exclude', $3); }
+        |R R    %prec cat   { put('cat'); }
+        |C  { put('single'); }
+        ;
+
+Rp
+        :'{' d '}'   {
+                        $$ = $2 - 1;
+                        while($$ > 0)
+                        {
+                            put('dupl');
+                            $$ --;
+                        }
+                        $$ = $2 - 1;
+                        while($$ > 0)
+                        {
+                            put('cat');
+                            $$ --;
+                        }
+                    }
+        |'{' ',' d '}'  {
+                            put('ask');
+                            $$ = $3 - 1;
+                            while($$ > 0)
+                            {
+                                put('dupl');
+                                $$ --;
+                            }
+                            $$ = $3 - 1;
+                            while($$ > 0)
+                            {
+                                put('cat');
+                                $$ --;
+                            }
+                        }
+        |'{' d ',' d '}'    {
+                                if($2 > $4)
+                                {
+                                    $$ = $2;
+                                    $2 = $4;
+                                    $4 = $$;
+                                }
+                                $$ = $2 - 1;
+                                while($$ > 0)
+                                {
+                                    put('dupl');
+                                    $$ --;
+                                }
+                                $$ = $4 - $2;
+                                if($$ > 0)
+                                {
+                                    put('dupl');
+                                    put('ask');
+                                    while($$ > 1)
+                                    {
+                                        put('dupl');
+                                        $$ --;
+                                    }
+                                }
+                                $$ = $4 - 1;
+                                while($$ > 0)
+                                {
+                                    put('cat');
+                                    $$ --;
+                                }
+                            }
+        |'{' d ',' '}'      {
+                                $$ = $2;
+                                while($$ > 0)
+                                {
+                                    put('dupl');
+                                    $$ --;
+                                }
+                                put('star');
+                                $$ = $2;
+                                while($$ > 0)
+                                {
+                                    put('cat');
+                                    $$ --;
+                                }
+                            }
+        ;
+
+IR
+        :IR c '-' c      { $$ = $1; $$ ++; put('c',$2); put('c',$4); put('range'); }
+        |IR C           { $$ = $1; $$ ++; put('single'); }
+        |C              { put('single'); $$ = 1; }
+        |c '-' c        { put('c',$1); put('c',$3); put('range'); $$ = 1; }
+        ;
+
+C
+        :c               { put('c',$1); }
+        |escc           { put('escc', $1); }
+        ;
