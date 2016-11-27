@@ -16,8 +16,10 @@ package org.lala.compilercompile.lr0automata
     import org.lala.compilercompile.interfaces.ISymbol;
     import org.lala.compilercompile.interfaces.ISymbols;
     import org.lala.compilercompile.interfaces.ITableCell;
+    import org.lala.compilercompile.utils.JavaFileGenerator;
+    import org.lala.compilercompile.utils.JavaTplRender;
+    import org.lala.compilercompile.utils.OutputFileType;
     import org.lala.compilercompile.utils.ParserFile;
-//    import org.lala.compilercompile.utils.SimpleParser;
     import org.lala.compilercompile.utils.TplRender;
     import org.lala.compilercompile.utils.XmlParser;
 
@@ -477,13 +479,34 @@ package org.lala.compilercompile.lr0automata
         
         public function saveParserFile():Object
         {
-            var render:TplRender = new TplRender();
+			var data: String;
+			var fileName: String;
             var fileData:ParserFile = new ParserFile(_srcProvider.data.parser);
-            fileData.actions = actionsOutput();
-            fileData.tables = tableOutput();
+			
+			var outputType: String = _srcProvider.data.parser.fields.output_type;
+			if (outputType == null)
+				outputType = OutputFileType.ACTIONSCRIPT3;
+			
+			if (outputType == OutputFileType.ACTIONSCRIPT3)
+			{
+				fileData.actions = actionsOutput();
+				fileData.tables = tableOutput();
+
+				data = (new TplRender()).render(fileData.getRenderObject());
+				fileName = fileData.className + '.as';
+			}
+			else if(outputType == OutputFileType.JAVA)
+			{
+				fileData.actions = JavaFileGenerator.getActions(_srcProvider.data);
+				fileData.tables = JavaFileGenerator.getTables(twoTables[0], twoTables[1], prds, inputSymbols);
+				
+				data = (new JavaTplRender()).render(fileData.getRenderObject());
+				fileName = fileData.className + '.java';
+			}
+			
 			return {
-				data: render.render(fileData.getRenderObject()),
-				name: fileData.className + '.as'
+				data: data,
+				name: fileName
 			};
             
         }

@@ -35,3 +35,7 @@ include "org/lala/compilercompile/utils/ParserFile.as";
 //include "org/lala/compilercompile/utils/SimpleParser.as";
 include "org/lala/compilercompile/utils/TplRender.as";
 include "org/lala/compilercompile/utils/XmlParser.as";
+include "org/lala/compilercompile/utils/IFileGenerator.as";
+include "org/lala/compilercompile/utils/JavaFileGenerator.as";
+include "org/lala/compilercompile/utils/JavaTplRender.as";
+include "org/lala/compilercompile/utils/OutputFileType.as";

@@ -47,17 +47,19 @@
 <INITIAL BRACKET>.                      return "c"
 
 /lex
-%package        org.lala.lex.utils.parser
 %class          RegexParser
 %lexer_name     RegexLexer
+%field      package %{package    org.lala.lex.utils.parser;
+%}
+%field      output_type  %{java%}
 
-%initial        %{
-                    var code:Array = [];
-                    function put(...args):void
-                    {
-                        code.push(args);
-                    };
-                %}
+%{
+    private LinkedList<Object> codes = new LinkedList<>();
+    private void put(Object args) {
+        codes.add(args);
+    };
+    private int _$i = 0;
+%}
 
 %left   '|'
 %left   escc c cat '(' '['
@@ -69,108 +71,108 @@
 RegExp
         : R
             {
-                $$ = code;
+                $$ = codes;
             }
         ;
 R
-        :R '|' R     { put('or'); }
+        :R '|' R     { put("or"); }
         |'(' R ')'
         |R Rp   %prec '*'
-        |R '*'  { put('star'); }
-        |R '+'  { put('more'); }
-        |R '?'  { put('ask');  }
-        |'[' IR ']'     { put('include', $2); }
-        |'[' '^' IR ']' { put('exclude', $3); }
-        |R R    %prec cat   { put('cat'); }
-        |C  { put('single'); }
+        |R '*'  { put("star"); }
+        |R '+'  { put("more"); }
+        |R '?'  { put("ask");  }
+        |'[' IR ']'     { put(new Object[]{"include", $2}); }
+        |'[' '^' IR ']' { put(new Object[]{"exclude", $3}); }
+        |R R    %prec cat   { put("cat"); }
+        |C  { put("single"); }
         ;
 
 Rp
         :'{' d '}'   {
-                        $$ = $2 - 1;
-                        while($$ > 0)
+                        _$i = (Integer)$2 - 1;
+                        while(_$i > 0)
                         {
-                            put('dupl');
-                            $$ --;
+                            put("dupl");
+                            _$i --;
                         }
-                        $$ = $2 - 1;
-                        while($$ > 0)
+                        _$i = (Integer)$2 - 1;
+                        while(_$i > 0)
                         {
-                            put('cat');
-                            $$ --;
+                            put("cat");
+                            _$i --;
                         }
                     }
         |'{' ',' d '}'  {
-                            put('ask');
-                            $$ = $3 - 1;
-                            while($$ > 0)
+                            put("ask");
+                            _$i = (Integer)$3 - 1;
+                            while(_$i > 0)
                             {
-                                put('dupl');
-                                $$ --;
+                                put("dupl");
+                                _$i --;
                             }
-                            $$ = $3 - 1;
-                            while($$ > 0)
+                            _$i = (Integer)$3 - 1;
+                            while(_$i > 0)
                             {
-                                put('cat');
-                                $$ --;
+                                put("cat");
+                                _$i --;
                             }
                         }
-        |'{' d ',' d '}'    {
-                                if($2 > $4)
+        |'{' d ',' d '}'    {/*
+                                if((Integer)$2 > (Integer)$4)
                                 {
-                                    $$ = $2;
+                                    _$i = (Integer)$2;
                                     $2 = $4;
-                                    $4 = $$;
-                                }
-                                $$ = $2 - 1;
-                                while($$ > 0)
+                                    $4 = _$i;
+                                }*/
+                                _$i = (Integer)$2 - 1;
+                                while(_$i > 0)
                                 {
-                                    put('dupl');
-                                    $$ --;
+                                    put("dupl");
+                                    _$i --;
                                 }
-                                $$ = $4 - $2;
-                                if($$ > 0)
+                                _$i = (Integer)$4 - (Integer)$2;
+                                if(_$i > 0)
                                 {
-                                    put('dupl');
-                                    put('ask');
-                                    while($$ > 1)
+                                    put("dupl");
+                                    put("ask");
+                                    while(_$i > 1)
                                     {
-                                        put('dupl');
-                                        $$ --;
+                                        put("dupl");
+                                        _$i --;
                                     }
                                 }
-                                $$ = $4 - 1;
-                                while($$ > 0)
+                                _$i = (Integer)$4 - 1;
+                                while(_$i > 0)
                                 {
-                                    put('cat');
-                                    $$ --;
+                                    put("cat");
+                                    _$i --;
                                 }
                             }
         |'{' d ',' '}'      {
-                                $$ = $2;
-                                while($$ > 0)
+                                _$i = (Integer)$2;
+                                while(_$i > 0)
                                 {
-                                    put('dupl');
-                                    $$ --;
+                                    put("dupl");
+                                    _$i --;
                                 }
-                                put('star');
-                                $$ = $2;
-                                while($$ > 0)
+                                put("star");
+                                _$i = (Integer)$2;
+                                while(_$i > 0)
                                 {
-                                    put('cat');
-                                    $$ --;
+                                    put("cat");
+                                    _$i --;
                                 }
                             }
         ;
 
 IR
-        :IR c '-' c      { $$ = $1; $$ ++; put('c',$2); put('c',$4); put('range'); }
-        |IR C           { $$ = $1; $$ ++; put('single'); }
-        |C              { put('single'); $$ = 1; }
-        |c '-' c        { put('c',$1); put('c',$3); put('range'); $$ = 1; }
+        :IR c '-' c      { _$i = (Integer)$1; $$ = _$i + 1; put(new Object[]{"c", $2}); put(new Object[]{"c", $4}); put("range"); }
+        |IR C           { _$i = (Integer)$1; $$ = _$i + 1; put("single"); }
+        |C              { put("single"); $$ = 1; }
+        |c '-' c        { put(new Object[]{"c", $1}); put(new Object[]{"c", $3}); put("range"); $$ = 1; }
         ;
 
 C
-        :c               { put('c',$1); }
-        |escc           { put('escc', $1); }
+        :c               { put(new Object[]{"c", $1}); }
+        |escc           { put(new Object[]{"escc", $1}); }
         ;
