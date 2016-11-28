@@ -51,7 +51,7 @@ public class <{ class }> {
             Integer _act_obj = _actionTable.get(_token_id).get(_state);
 
             if (_act_obj == null) {
-                throw new Error("Parse Error: " + lexer.getPositionInfo());
+                throw new Exception("Parse Error: " + lexer.getPositionInfo());
             } else {
                 _act = _act_obj;
             }
@@ -82,7 +82,7 @@ public class <{ class }> {
                 _state = _stateStack.peek();
                 _act_obj = _gotoTable.get(_prodList[_pi].id).get(_state);
                 if (_act_obj == null) {
-                    throw new Error("Goto Error!" + lexer.getPositionInfo());
+                    throw new Exception("Goto Error!" + lexer.getPositionInfo());
                 } else {
                     _act = _act_obj;
                 }

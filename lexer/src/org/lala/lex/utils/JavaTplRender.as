@@ -168,10 +168,10 @@ public class <{ class }> {
                                 _ended = true;
                                 return "<$>";
                             } else {
-                                throw new Error("已经达到末尾.");
+                                throw new Exception("已经达到末尾.");
                             }
                         } else {
-                            throw new Error("意外的字符, line:" + _line + ", col:" + _col + " of " + _source.substring((int) _start, (int) (_start + 20)));
+                            throw new Exception("意外的字符, line:" + _line + ", col:" + _col + " of " + _source.substring((int) _start, (int) (_start + 20)));
                         }
                     } else {
                         _yytext = _source.substring((int) _start, (int) _lastFinalPosition);
@@ -206,7 +206,7 @@ public class <{ class }> {
 
     private void setInitialState(String state) throws Exception {
         if (!_initialTable.containsKey(state)) {
-            throw new Error("未定义的初始状态: " + state);
+            throw new Exception("未定义的初始状态: " + state);
         }
         _initialState = state;
         _initialInput = _initialTable.get(state);
@@ -237,7 +237,7 @@ public class <{ class }> {
 
     private long trans(long curState, long ch) throws Exception {
         if (ch < _inputTable[0].from || ch > _inputTable[_inputTable.length - 1].to) {
-            throw new Error(positionMessage("输入字符超出有效范围."));
+            throw new Exception(positionMessage("输入字符超出有效范围."));
         }
 
         if (_transTable[(int)curState].isDead) {
