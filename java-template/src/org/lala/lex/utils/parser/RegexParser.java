@@ -3,7 +3,7 @@ package    org.lala.lex.utils.parser;
 import java.util.*;
 
 /**
- * Created by as3cc on Thu Dec 8 19:17:16 GMT+0800 2016.
+ * Created by as3cc on Fri Dec 9 11:37:30 GMT+0800 2016.
  */
 public class RegexParser {
     private List<Map<Integer, Integer>> _actionTable;
@@ -29,7 +29,7 @@ new HashMap<>(0x6);_tmp = new HashMap<>(2);_tmp.put(0xB, 0x33); _tmp.put(0x3, 0x
 ;_prodList = 
 new ProductionItem[] {new ProductionItem(0x19, 0x2), new ProductionItem(0x13, 0x1), new ProductionItem(0x13, 0x4), new ProductionItem(0x15, 0x2), new ProductionItem(0x15, 0x0), new ProductionItem(0x14, 0x3), new ProductionItem(0x14, 0x3), new ProductionItem(0x14, 0x2), new ProductionItem(0x14, 0x2), new ProductionItem(0x14, 0x2), new ProductionItem(0x14, 0x2), new ProductionItem(0x14, 0x3), new ProductionItem(0x14, 0x4), new ProductionItem(0x14, 0x2), new ProductionItem(0x14, 0x1), new ProductionItem(0x17, 0x3), new ProductionItem(0x17, 0x4), new ProductionItem(0x17, 0x5), new ProductionItem(0x17, 0x4), new ProductionItem(0x18, 0x4), new ProductionItem(0x18, 0x2), new ProductionItem(0x18, 0x1), new ProductionItem(0x18, 0x3), new ProductionItem(0x16, 0x1), new ProductionItem(0x16, 0x1)}
 ;_inputTable = 
-new HashMap<>(18);_inputTable.put("/", 0x2); _inputTable.put("[", 0x9); _inputTable.put(",", 0xF); _inputTable.put("]", 0xA); _inputTable.put("(", 0x4); _inputTable.put("{", 0xC); _inputTable.put("^", 0xB); _inputTable.put(")", 0x5); _inputTable.put("|", 0x3); _inputTable.put("?", 0x8); _inputTable.put("}", 0xE); _inputTable.put("escc", 0x12); _inputTable.put("+", 0x7); _inputTable.put("*", 0x6); _inputTable.put("<$>", 0x1); _inputTable.put("-", 0x11); _inputTable.put("c", 0x10); _inputTable.put("d", 0xD)
+new HashMap<>(18);_inputTable.put("/", 0x2); _inputTable.put("[", 0x9); _inputTable.put("escc", 0x12); _inputTable.put("]", 0xA); _inputTable.put("(", 0x4); _inputTable.put("{", 0xC); _inputTable.put("^", 0xB); _inputTable.put(")", 0x5); _inputTable.put("|", 0x3); _inputTable.put("?", 0x8); _inputTable.put("}", 0xE); _inputTable.put("+", 0x7); _inputTable.put("*", 0x6); _inputTable.put(",", 0xF); _inputTable.put("<$>", 0x1); _inputTable.put("-", 0x11); _inputTable.put("c", 0x10); _inputTable.put("d", 0xD)
 ;
     }
 
@@ -216,7 +216,12 @@ case 0x17:
  put(new Object[]{"c", (_outputStack.get(_outputStack.size() - 1))}); 
 break;
 case 0x18:
- put(new Object[]{"escc", (_outputStack.get(_outputStack.size() - 1))}); 
+
+                if ("\\c".equals((String) (_outputStack.get(_outputStack.size() - 1)))) {
+                    throw new Exception("Control Character: " + lexer.getPositionInfo());
+                }
+                put(new Object[]{"escc", (_outputStack.get(_outputStack.size() - 1))});
+            
 break;
 }
                 /** actions applying end **/
