@@ -24,7 +24,7 @@ package org.lala.lex.utils
             
             if(lexerConfig.codes != null)
             {
-                userCode = lexerConfig.codes.join(';\r\n') + ';\r\n';
+                userCode = lexerConfig.codes.join(';\r\n');
             }
             
             if(lexerConfig.initials != null)

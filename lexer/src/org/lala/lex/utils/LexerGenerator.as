@@ -136,6 +136,12 @@ package org.lala.lex.utils
 				data = (new JavaTplRender()).render(fileData.getRenderObject())
 				fileName = fileData.className + '.java';
 			}
+			else if(outputType == OutputFileType.RUST)
+			{
+				var rfg: RustFileGenerator = new RustFileGenerator(_config, this._stateTrans, this._finalIndices, this._inputTrans, this._statesInputTable);
+				data = rfg.render();
+				fileName = rfg.fileName;
+			}
 			
             return {
 				data: data,

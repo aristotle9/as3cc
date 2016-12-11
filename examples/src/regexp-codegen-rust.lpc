@@ -1,0 +1,201 @@
+/** 正则表达式分析 **/
+
+%lex
+
+%class      RegexLexer
+%field      package %{package    org.lala.lex.utils.parser;
+%}
+%field      output_type  %{rust%}
+%{
+    //public void setToken(String value) {
+    //    _tokenName = value;
+    //}
+%}
+
+%x          BRACKET REPEAT
+
+%%
+
+\*                                      return "*"
+\+                                      return "+"
+\?                                      return "?"
+\|                                      return "|"
+\(                                      return "("
+\)                                      return ")"
+
+\[                                      self.begin("BRACKET"); return "["
+<BRACKET>\^                             return "^"
+<BRACKET>\-                             return "-"
+<BRACKET>\]                             self.begin("INITIAL"); return "]"
+
+\{                                      self.begin("REPEAT"); return "{"
+<REPEAT>,                               return ","
+<REPEAT>\d+                             /** $$ = Integer.valueOf((String)$$); **/ return "d"
+<REPEAT>[ \t]+                          /* skip */
+<REPEAT>\}                              self.begin("INITIAL"); return "}"
+
+<INITIAL BRACKET>\\0[0-7]{2}            /** $$ = Character.toString((char)Integer.parseInt(((String)$$).substring(2, 4), 8)); **/ return "c"
+<INITIAL BRACKET>\\x[\da-fA-F]{2}       /** $$ = Character.toString((char)Integer.parseInt(((String)$$).substring(2, 4), 16)); **/ return "c"
+<INITIAL BRACKET>\\u[\da-fA-F]{4}       /** $$ = Character.toString((char)Integer.parseInt(((String)$$).substring(2, 6), 16)); **/ return "c"
+<INITIAL BRACKET>\\[dsw]|\.             return "escc"
+<INITIAL BRACKET>\\r                    /** $$ = "\r"; */ return "c"
+<INITIAL BRACKET>\\n                    /** $$ = "\n"; */ return "c"
+<INITIAL BRACKET>\\t                    /** $$ = "\t"; */ return "c"
+<INITIAL BRACKET>\\b                    /** $$ = "\b"; */ return "c"
+<INITIAL BRACKET>\\f                    /** $$ = "\f"; */ return "c"
+<INITIAL BRACKET>\\/                    /** $$ = "/"; */ return "c"
+<INITIAL BRACKET>\\c                    return "escc"
+<INITIAL BRACKET>\\.                    /** $$ = ((String)$$).substring(1, 2); **/ return "c"
+<INITIAL BRACKET>/                      return "/"
+<INITIAL BRACKET>.                      return "c"
+
+/lex
+%class          RegexParser
+%lexer_name     RegexLexer
+%field      package %{package    org.lala.lex.utils.parser;
+%}
+%field      output_type  %{java%}
+
+%{
+    private LinkedList<Object> codes = new LinkedList<>();
+    private void put(Object args) {
+        codes.add(args);
+    };
+    private int _$i = 0;
+    private String flags = "";
+    private String flags_c = "";
+%}
+
+%left   '|'
+%left   escc c cat '(' '['
+%left   '-'
+%left   '*' '?' '+' '{'
+%left   ')' ']'
+
+%%
+RegExp
+        : R { $$ = codes; }
+        | '/' R '/' Flags { $$ = codes; }
+        ;
+Flags
+        : Flags C
+            {
+                flags_c = (String) $2;
+                if (flags.indexOf(flags_c) != -1) {
+                    throw new Exception("Flag Repeated:" + lexer.getPositionInfo());
+                }
+                if ("igm".indexOf(flags_c) == -1) {
+                    throw new Exception("Unknow Flag:" + lexer.getPositionInfo());
+                }
+                flags = flags + flags_c;
+            }
+        |
+        ;
+R
+        :R '|' R     { put("or"); }
+        |'(' R ')'
+        |R Rp   %prec '*'
+        |R '*'  { put("star"); }
+        |R '+'  { put("more"); }
+        |R '?'  { put("ask");  }
+        |'[' IR ']'     { put(new Object[]{"include", $2}); }
+        |'[' '^' IR ']' { put(new Object[]{"exclude", $3}); }
+        |R R    %prec cat   { put("cat"); }
+        |C  { put("single"); }
+        ;
+
+Rp
+        :'{' d '}'   {
+                        _$i = (Integer)$2 - 1;
+                        while(_$i > 0)
+                        {
+                            put("dupl");
+                            _$i --;
+                        }
+                        _$i = (Integer)$2 - 1;
+                        while(_$i > 0)
+                        {
+                            put("cat");
+                            _$i --;
+                        }
+                    }
+        |'{' ',' d '}'  {
+                            put("ask");
+                            _$i = (Integer)$3 - 1;
+                            while(_$i > 0)
+                            {
+                                put("dupl");
+                                _$i --;
+                            }
+                            _$i = (Integer)$3 - 1;
+                            while(_$i > 0)
+                            {
+                                put("cat");
+                                _$i --;
+                            }
+                        }
+        |'{' d ',' d '}'    {/*
+                                if((Integer)$2 > (Integer)$4)
+                                {
+                                    _$i = (Integer)$2;
+                                    $2 = $4;
+                                    $4 = _$i;
+                                }*/
+                                _$i = (Integer)$2 - 1;
+                                while(_$i > 0)
+                                {
+                                    put("dupl");
+                                    _$i --;
+                                }
+                                _$i = (Integer)$4 - (Integer)$2;
+                                if(_$i > 0)
+                                {
+                                    put("dupl");
+                                    put("ask");
+                                    while(_$i > 1)
+                                    {
+                                        put("dupl");
+                                        _$i --;
+                                    }
+                                }
+                                _$i = (Integer)$4 - 1;
+                                while(_$i > 0)
+                                {
+                                    put("cat");
+                                    _$i --;
+                                }
+                            }
+        |'{' d ',' '}'      {
+                                _$i = (Integer)$2;
+                                while(_$i > 0)
+                                {
+                                    put("dupl");
+                                    _$i --;
+                                }
+                                put("star");
+                                _$i = (Integer)$2;
+                                while(_$i > 0)
+                                {
+                                    put("cat");
+                                    _$i --;
+                                }
+                            }
+        ;
+
+IR
+        :IR c '-' c      { _$i = (Integer)$1; $$ = _$i + 1; put(new Object[]{"c", $2}); put(new Object[]{"c", $4}); put("range"); }
+        |IR C           { _$i = (Integer)$1; $$ = _$i + 1; put("single"); }
+        |C              { put("single"); $$ = 1; }
+        |c '-' c        { put(new Object[]{"c", $1}); put(new Object[]{"c", $3}); put("range"); $$ = 1; }
+        ;
+
+C
+        :c               { put(new Object[]{"c", $1}); }
+        |escc
+            {
+                if ("\\c".equals((String) $1)) {
+                    throw new Exception("Control Character: " + lexer.getPositionInfo());
+                }
+                put(new Object[]{"escc", $1});
+            }
+        ;
