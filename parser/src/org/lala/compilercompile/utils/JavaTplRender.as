@@ -64,7 +64,7 @@ public class <{ class }> {
                 lexer.advance();
             } else if ((_act & 1) == 0) {
                 int _pi = _act >>> 1;
-                int _length = _prodList[_pi].length;
+                int _length = _prodList[_pi].body_length;
                 Object _result = null;
                 /** actions applying **/
                 /** default action **/
@@ -80,7 +80,7 @@ public class <{ class }> {
                     _i ++;
                 }
                 _state = _stateStack.peek();
-                _act_obj = _gotoTable.get(_prodList[_pi].id).get(_state);
+                _act_obj = _gotoTable.get(_prodList[_pi].header_id).get(_state);
                 if (_act_obj == null) {
                     throw new Exception("Goto Error!" + lexer.getPositionInfo());
                 } else {
@@ -102,11 +102,11 @@ public class <{ class }> {
     }
 
     public static final class ProductionItem {
-        public final int id;
-        public final int length;
-        public ProductionItem(int id, int length) {
-            this.id = id;
-            this.length = length;
+        public final int header_id;
+        public final int body_length;
+        public ProductionItem(int header_id, int body_length) {
+            this.header_id = header_id;
+            this.body_length = body_length;
         }
     }
 }
