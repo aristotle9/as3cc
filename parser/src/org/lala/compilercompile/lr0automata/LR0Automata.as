@@ -20,6 +20,7 @@ package org.lala.compilercompile.lr0automata
     import org.lala.compilercompile.utils.JavaTplRender;
     import org.lala.compilercompile.utils.OutputFileType;
     import org.lala.compilercompile.utils.ParserFile;
+    import org.lala.compilercompile.utils.RustFileGenerator;
     import org.lala.compilercompile.utils.TplRender;
     import org.lala.compilercompile.utils.XmlParser;
 
@@ -502,6 +503,12 @@ package org.lala.compilercompile.lr0automata
 				
 				data = (new JavaTplRender()).render(fileData.getRenderObject());
 				fileName = fileData.className + '.java';
+			}
+			else if(outputType == OutputFileType.RUST)
+			{
+				var rfg: RustFileGenerator = new RustFileGenerator(_srcProvider, twoTables[0], twoTables[1], prds, inputSymbols);
+				data = rfg.render();
+				fileName = rfg.fileName;
 			}
 			
 			return {

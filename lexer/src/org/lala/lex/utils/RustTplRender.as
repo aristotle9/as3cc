@@ -1,5 +1,7 @@
 package org.lala.lex.utils
 {
+	import com.maccherone.json.JSON;
+
     public class RustTplRender
     {
         public function RustTplRender()
@@ -19,10 +21,15 @@ package org.lala.lex.utils
             });
         }
 		
-		private static const Src:String = String(<r><![CDATA[use std::error::Error;
+		private static const Src:String = String(<r><![CDATA[extern crate rustc_serialize;
+
+use self::rustc_serialize::json::Json;
+
+use std::error::Error;
 use std::fmt;
 use std::u64;
 <{ imports }>
+<{ usercode }>
 
 /**
  * Created by as3cc on <{ create_date }>.
@@ -77,7 +84,7 @@ pub struct <{ class }> {
     _start:  usize,
     _old_start:  usize,
     _token_index:  usize,
-    _yytext:  usize,//&mut u8
+    _yytext:  Json,
     _yy:  usize,//&mut u8
     _ended:  bool,
     _initial_input:  usize,
@@ -86,8 +93,6 @@ pub struct <{ class }> {
     _advanced:  bool,
     _source:  Vec<char>,//
 }
-
-<{ usercode }>
 
 impl <{ class }> {
     
@@ -112,7 +117,7 @@ impl <{ class }> {
             _start: 0,
             _old_start: 0,
             _token_index: 0,
-            _yytext: 0,
+            _yytext: Json::Null,
             _yy: 0,
             _ended: false,
             _initial_input: <{ initial_input_index }>,
@@ -131,7 +136,7 @@ impl <{ class }> {
         self._col = 0;
         self._advanced = true;
         self._token_index = 0;
-        self._yytext = 0;
+        self._yytext = Json::Null;
         self._yy = 0;
         self._initial_input = <{ initial_input_index }>;
         self._source = source.chars().collect();
@@ -144,27 +149,27 @@ impl <{ class }> {
     }
 
     #[inline]
-    fn advance(&mut self) {
+    pub fn advance(&mut self) {
         self._advanced = true;
     }
 
     #[inline]
-    fn start_index(&self) -> usize {
+    pub fn start_index(&self) -> usize {
         self._old_start
     }
 
     #[inline]
-    fn end_index(&self) -> usize {
+    pub fn end_index(&self) -> usize {
         self._start
     }
 
     #[inline]
-    fn get_position(&self) -> [u64; 2] {
+    pub fn get_position(&self) -> [u64; 2] {
         [self._line, self._col]
     }
 
     #[inline]
-    fn new_lexer_error(&self, reason: String) -> <{ class }>Error {
+    pub fn new_lexer_error(&self, reason: String) -> <{ class }>Error {
         // format!("{}@row:{}col:{}", Self::find_token_name(self._token_index), self._line, self._col)
         <{ class }>Error {
             token_name: Self::find_token_name(self._token_index),
@@ -176,13 +181,16 @@ impl <{ class }> {
     }
 
     #[inline]
-    fn set_yytext(&mut self, value: usize) {
+    fn set_yytext(&mut self, value: Json) {
         self._yytext = value;
     }
 
     #[inline]
-    fn get_yytext(&self) -> usize {
-        self._yytext
+    pub fn get_yytext(&mut self) -> Json {
+        if self._yytext.is_null() && !self._ended {
+            self._yytext = Json::String(self._source[self.start_index() .. self.end_index()].iter().cloned().collect())
+        }
+        self._yytext.clone()
     }
 
     #[inline]
@@ -195,7 +203,7 @@ impl <{ class }> {
         self._initial_input = initial_input;
     }
 
-    fn get_token(&mut self) -> <{ class }>Result {
+    pub fn get_token(&mut self) -> <{ class }>Result {
         if self._advanced {
             match self.next() {
                 Ok(value) => {self._token_index = value;},
@@ -255,7 +263,7 @@ impl <{ class }> {
                             return Err(self.new_lexer_error("invalid char".to_string()));
                         }
                     } else {
-                        self._yytext = 0;//set yytext
+                        self._yytext = Json::Null;//set yytext
                         self._old_start = self._start;
                         self._start = _last_final_position;
                         let _findex = self.trans_table[_last_final_state].final_index;
@@ -304,7 +312,7 @@ impl <{ class }> {
         return Ok(self.trans_table[cur_state].to_states[inner_input as usize])
     }
 
-    pub fn lex_seq(source: &str) -> Result<Vec<(&'static str, Token, usize, usize, usize)>, <{ class }>Error> {//(token_name, token_index, yytext, star, end)
+    pub fn lex_seq(source: &str) -> Result<Vec<(&'static str, Token, Json, usize, usize)>, <{ class }>Error> {//(token_name, token_index, yytext, star, end)
         let mut lexer = <{ class }>::new();
         lexer.set_source(source);
         let mut tokens = Vec::new();

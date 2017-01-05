@@ -21,5 +21,10 @@ package org.lala.compilercompile.configs
         {
             return _data;
         }
+		
+		public function get lexer():Object
+		{
+			return _data.parser.lex[0];
+		}
     }
 }

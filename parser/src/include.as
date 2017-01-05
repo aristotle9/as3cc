@@ -38,4 +38,6 @@ include "org/lala/compilercompile/utils/XmlParser.as";
 include "org/lala/compilercompile/utils/IFileGenerator.as";
 include "org/lala/compilercompile/utils/JavaFileGenerator.as";
 include "org/lala/compilercompile/utils/JavaTplRender.as";
+include "org/lala/compilercompile/utils/RustFileGenerator.as";
+include "org/lala/compilercompile/utils/RustTplRender.as";
 include "org/lala/compilercompile/utils/OutputFileType.as";

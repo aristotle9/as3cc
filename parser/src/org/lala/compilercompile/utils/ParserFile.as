@@ -26,12 +26,12 @@ package org.lala.compilercompile.utils
             
             if(parserConfig.codes != null)
             {
-                userCode = parserConfig.codes.join(';\r\n') + ';\r\n';
+                userCode = parserConfig.codes.join('\r\n');
             }
             
             if(parserConfig.initials != null)
             {
-                initialCode = parserConfig.initials.join(';\r\n') + ';\r\n';
+                initialCode = parserConfig.initials.join('\r\n');
             }
             
             if(parserConfig.fields != null)

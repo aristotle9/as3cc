@@ -6,10 +6,9 @@
 %field      package %{package    org.lala.lex.utils.parser;
 %}
 %field      output_type  %{rust%}
+
 %{
-    //public void setToken(String value) {
-    //    _tokenName = value;
-    //}
+use std::char;
 %}
 
 %x          BRACKET REPEAT
@@ -30,22 +29,22 @@
 
 \{                                      self.begin("REPEAT"); return "{"
 <REPEAT>,                               return ","
-<REPEAT>\d+                             /** $$ = Integer.valueOf((String)$$); **/ return "d"
+<REPEAT>\d+                             { let u = u64::from_str_radix(self.get_yytext().as_string().unwrap(), 10).unwrap(); self.set_yytext(Json::U64(u)); } return "d"
 <REPEAT>[ \t]+                          /* skip */
 <REPEAT>\}                              self.begin("INITIAL"); return "}"
 
-<INITIAL BRACKET>\\0[0-7]{2}            /** $$ = Character.toString((char)Integer.parseInt(((String)$$).substring(2, 4), 8)); **/ return "c"
-<INITIAL BRACKET>\\x[\da-fA-F]{2}       /** $$ = Character.toString((char)Integer.parseInt(((String)$$).substring(2, 4), 16)); **/ return "c"
-<INITIAL BRACKET>\\u[\da-fA-F]{4}       /** $$ = Character.toString((char)Integer.parseInt(((String)$$).substring(2, 6), 16)); **/ return "c"
+<INITIAL BRACKET>\\0[0-7]{2}            { let u = u32::from_str_radix(&self.get_yytext().as_string().unwrap()[2 .. 4], 8).unwrap(); self.set_yytext(Json::String(char::from_u32(u).unwrap().to_string())); } return "c"
+<INITIAL BRACKET>\\x[\da-fA-F]{2}       { let u = u32::from_str_radix(&self.get_yytext().as_string().unwrap()[2 .. 4], 16).unwrap(); self.set_yytext(Json::String(char::from_u32(u).unwrap().to_string())); } return "c"
+<INITIAL BRACKET>\\u[\da-fA-F]{4}       { let u = u32::from_str_radix(&self.get_yytext().as_string().unwrap()[2 .. 6], 16).unwrap(); self.set_yytext(Json::String(char::from_u32(u).unwrap().to_string())); } return "c"
 <INITIAL BRACKET>\\[dsw]|\.             return "escc"
-<INITIAL BRACKET>\\r                    /** $$ = "\r"; */ return "c"
-<INITIAL BRACKET>\\n                    /** $$ = "\n"; */ return "c"
-<INITIAL BRACKET>\\t                    /** $$ = "\t"; */ return "c"
-<INITIAL BRACKET>\\b                    /** $$ = "\b"; */ return "c"
-<INITIAL BRACKET>\\f                    /** $$ = "\f"; */ return "c"
-<INITIAL BRACKET>\\/                    /** $$ = "/"; */ return "c"
+<INITIAL BRACKET>\\r                    self.set_yytext(Json::String("\r".to_string())); return "c"
+<INITIAL BRACKET>\\n                    self.set_yytext(Json::String("\n".to_string())); return "c"
+<INITIAL BRACKET>\\t                    self.set_yytext(Json::String("\t".to_string())); return "c"
+<INITIAL BRACKET>\\b                    self.set_yytext(Json::String("\x08".to_string())); return "c"
+<INITIAL BRACKET>\\f                    self.set_yytext(Json::String("\x0C".to_string())); return "c"
+<INITIAL BRACKET>\\/                    self.set_yytext(Json::String("/".to_string())); return "c"
 <INITIAL BRACKET>\\c                    return "escc"
-<INITIAL BRACKET>\\.                    /** $$ = ((String)$$).substring(1, 2); **/ return "c"
+<INITIAL BRACKET>\\.                    { let s = self.get_yytext(); self.set_yytext(Json::String(s.as_string().unwrap()[1 ..].to_string())); } return "c"
 <INITIAL BRACKET>/                      return "/"
 <INITIAL BRACKET>.                      return "c"
 
@@ -54,16 +53,11 @@
 %lexer_name     RegexLexer
 %field      package %{package    org.lala.lex.utils.parser;
 %}
-%field      output_type  %{java%}
+%field      output_type  %{rust%}
 
-%{
-    private LinkedList<Object> codes = new LinkedList<>();
-    private void put(Object args) {
-        codes.add(args);
-    };
-    private int _$i = 0;
-    private String flags = "";
-    private String flags_c = "";
+%initial %{
+let mut codes: Vec<Json> = Vec::new();
+let mut flags: Vec<Json> = Vec::new();
 %}
 
 %left   '|'
@@ -74,64 +68,59 @@
 
 %%
 RegExp
-        : R { $$ = codes; }
-        | '/' R '/' Flags { $$ = codes; }
+        : R { $$ = Some(Json::Array(codes.clone())); }
+        | '/' R '/' Flags {
+            for _ in 0..flags.len() {
+                codes.pop();
+            }
+            $$ = Some(Json::Array(codes.clone()));
+        }
         ;
 Flags
         : Flags C
             {
-                flags_c = (String) $2;
-                if (flags.indexOf(flags_c) != -1) {
-                    throw new Exception("Flag Repeated:" + lexer.getPositionInfo());
+                let flags_c = $2;
+                if flags.contains(&flags_c) {
+                    return Err(lexer.new_lexer_error("Flag Repeated".to_string()))
                 }
-                if ("igm".indexOf(flags_c) == -1) {
-                    throw new Exception("Unknow Flag:" + lexer.getPositionInfo());
+                if "igm".find(flags_c.as_string().unwrap()).is_none() {
+                    return Err(lexer.new_lexer_error("Unknow Flag".to_string()))
                 }
-                flags = flags + flags_c;
+                flags.push(flags_c);
             }
         |
         ;
 R
-        :R '|' R     { put("or"); }
+        :R '|' R     { codes.push(Json::String("or".to_string())); }
         |'(' R ')'
         |R Rp   %prec '*'
-        |R '*'  { put("star"); }
-        |R '+'  { put("more"); }
-        |R '?'  { put("ask");  }
-        |'[' IR ']'     { put(new Object[]{"include", $2}); }
-        |'[' '^' IR ']' { put(new Object[]{"exclude", $3}); }
-        |R R    %prec cat   { put("cat"); }
-        |C  { put("single"); }
+        |R '*'  { codes.push(Json::String("star".to_string())); }
+        |R '+'  { codes.push(Json::String("more".to_string())); }
+        |R '?'  { codes.push(Json::String("ask".to_string()));  }
+        |'[' IR ']'     { codes.push(Json::Array(vec![Json::String("include".to_string()), $2])); }
+        |'[' '^' IR ']' { codes.push(Json::Array(vec![Json::String("exclude".to_string()), $3])); }
+        |R R    %prec cat   { codes.push(Json::String("cat".to_string())); }
+        |C  { codes.push(Json::String("single".to_string())); }
         ;
 
 Rp
         :'{' d '}'   {
-                        _$i = (Integer)$2 - 1;
-                        while(_$i > 0)
-                        {
-                            put("dupl");
-                            _$i --;
+                        let n: u64 = $2.as_u64().unwrap() - 1;
+                        for _ in 0..n {
+                            codes.push(Json::String("dupl".to_string()));
                         }
-                        _$i = (Integer)$2 - 1;
-                        while(_$i > 0)
-                        {
-                            put("cat");
-                            _$i --;
+                        for _ in 0..n {
+                            codes.push(Json::String("cat".to_string()));
                         }
                     }
         |'{' ',' d '}'  {
-                            put("ask");
-                            _$i = (Integer)$3 - 1;
-                            while(_$i > 0)
-                            {
-                                put("dupl");
-                                _$i --;
+                            codes.push(Json::String("ask".to_string()));
+                            let n: u64 = $3.as_u64().unwrap() - 1;
+                            for _ in 0..n {
+                                codes.push(Json::String("dupl".to_string()));
                             }
-                            _$i = (Integer)$3 - 1;
-                            while(_$i > 0)
-                            {
-                                put("cat");
-                                _$i --;
+                            for _ in 0..n {
+                                codes.push(Json::String("cat".to_string()));
                             }
                         }
         |'{' d ',' d '}'    {/*
@@ -141,61 +130,49 @@ Rp
                                     $2 = $4;
                                     $4 = _$i;
                                 }*/
-                                _$i = (Integer)$2 - 1;
-                                while(_$i > 0)
-                                {
-                                    put("dupl");
-                                    _$i --;
+                                let mut n: u64 = $2.as_u64().unwrap() - 1;
+                                for _ in 0..n {
+                                    codes.push(Json::String("dupl".to_string()));
                                 }
-                                _$i = (Integer)$4 - (Integer)$2;
-                                if(_$i > 0)
-                                {
-                                    put("dupl");
-                                    put("ask");
-                                    while(_$i > 1)
-                                    {
-                                        put("dupl");
-                                        _$i --;
+                                n = $4.as_u64().unwrap() - n;
+                                if n > 0 {
+                                    codes.push(Json::String("dupl".to_string()));
+                                    codes.push(Json::String("ask".to_string()));
+                                    for _ in 0..n {
+                                        codes.push(Json::String("dupl".to_string()));
                                     }
                                 }
-                                _$i = (Integer)$4 - 1;
-                                while(_$i > 0)
-                                {
-                                    put("cat");
-                                    _$i --;
+                                n = $4.as_u64().unwrap() - 1;
+                                for _ in 0..n {
+                                    codes.push(Json::String("cat".to_string()));
                                 }
                             }
         |'{' d ',' '}'      {
-                                _$i = (Integer)$2;
-                                while(_$i > 0)
-                                {
-                                    put("dupl");
-                                    _$i --;
+                                let n: u64 = $2.as_u64().unwrap();
+                                for _ in 0..n {
+                                    codes.push(Json::String("dupl".to_string()));
                                 }
-                                put("star");
-                                _$i = (Integer)$2;
-                                while(_$i > 0)
-                                {
-                                    put("cat");
-                                    _$i --;
+                                codes.push(Json::String("star".to_string()));
+                                for _ in 0..n {
+                                    codes.push(Json::String("cat".to_string()));
                                 }
                             }
         ;
 
 IR
-        :IR c '-' c      { _$i = (Integer)$1; $$ = _$i + 1; put(new Object[]{"c", $2}); put(new Object[]{"c", $4}); put("range"); }
-        |IR C           { _$i = (Integer)$1; $$ = _$i + 1; put("single"); }
-        |C              { put("single"); $$ = 1; }
-        |c '-' c        { put(new Object[]{"c", $1}); put(new Object[]{"c", $3}); put("range"); $$ = 1; }
+        :IR c '-' c      { $$ = Some(Json::U64($1.as_u64().unwrap() + 1)); codes.push(Json::Array(vec![Json::String("c".to_string()), $2])); codes.push(Json::Array(vec![Json::String("c".to_string()), $4])); codes.push(Json::String("range".to_string())); }
+        |IR C           { $$ = Some(Json::U64($1.as_u64().unwrap() + 1)); codes.push(Json::String("single".to_string())); }
+        |C              { codes.push(Json::String("single".to_string())); $$ = Some(Json::U64(1)); }
+        |c '-' c        { codes.push(Json::Array(vec![Json::String("c".to_string()), $1])); codes.push(Json::Array(vec![Json::String("c".to_string()), $3])); codes.push(Json::String("range".to_string())); $$ = Some(Json::U64(1)); }
         ;
 
 C
-        :c               { put(new Object[]{"c", $1}); }
+        :c               { codes.push(Json::Array(vec![Json::String("c".to_string()), $1])); }
         |escc
             {
-                if ("\\c".equals((String) $1)) {
-                    throw new Exception("Control Character: " + lexer.getPositionInfo());
+                if $1.as_string().unwrap() == "\\c" {
+                    return Err(lexer.new_lexer_error("Control Character".to_string()));
                 }
-                put(new Object[]{"escc", $1});
+                codes.push(Json::Array(vec![Json::String("escc".to_string()), $1]));
             }
         ;

@@ -127,5 +127,10 @@ package org.lala.compilercompile.utils
         {
             return _data;
         }
+		
+		public function get lexer(): Object
+		{
+			return null;
+		}
     }
 }
