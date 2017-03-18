@@ -9,6 +9,7 @@ package org.lala.compilercompile.utils
 		private var _gotoTable:String;
 		private var _prodList:String;
 		private var _inputTable:String;
+		private var _lookup_index: String;
 		
 		private var input_length: uint;
 		private var state_length: uint;
@@ -27,6 +28,8 @@ package org.lala.compilercompile.utils
 			this.asGotoTable = gotoTable;
 			this.asProdList = prodList;
 			this.asInputTable = inputTable;
+			
+			this.createActionTable();
 		}
 		
 		public function get prodList():String
@@ -38,11 +41,8 @@ package org.lala.compilercompile.utils
 			return this._prodList;
 		}
 		
-		public function get actionTable():String
+		public function createActionTable():void
 		{
-			if (this._actionTable)
-				return this._actionTable;
-			
 			// 将表格还原
 			var state_length: uint = 0;
 			var symbol_length: uint = 0;
@@ -144,12 +144,24 @@ package org.lala.compilercompile.utils
 			}
 			
 			table = remapInput(table);
-			var result: String = table.map(function(row: Array, i: int, parent: Array): String
+			
+			//compress table
+			var lookup_table: Array = [];
+			var lookup_index: Array = [];
+			table.forEach(function(row:Array, row_index:int, array:Array):void
 			{
-				return row.join(", ");
-			}).join(", \r\n");
-			this._actionTable = result;
-			return this._actionTable;
+				row.forEach(function(item:String, col_index:int, array:Array):void
+				{
+					if(item != "Action::Error")
+					{
+						lookup_table.push(item);
+						lookup_index.push(row_index * state_length + col_index);
+					}
+				});
+			});
+			
+			this._actionTable = lookup_table.join(", ");
+			this._lookup_index = lookup_index.join(", ");
 		}
 		
 		private function productionItemsString(a: Array): String
@@ -195,8 +207,8 @@ package org.lala.compilercompile.utils
 			tokens.sort();
 			tokens.unshift("<$>");
 			
-			trace(input_names);
-			trace(tokens);
+//			trace(input_names);
+//			trace(tokens);
 			var self: * = this;
 			tokens.forEach(function(name: String, i:int, parent:Array):void
 			{
@@ -207,7 +219,7 @@ package org.lala.compilercompile.utils
 				tokens_oldIds[i] = Number(self.asInputTable[name]);
 			});
 			tokens_oldIds.push(0);//epsilon
-			trace(tokens_oldIds);
+//			trace(tokens_oldIds);
 			return tokens_oldIds.map(function(index: int, i: int, parent: Array): Array
 			{
 				return table[index];
@@ -264,9 +276,12 @@ package org.lala.compilercompile.utils
 			var res: Object = super.getRenderObject();
 			res.tables = this.prodList;
 			res.actions = this.getActions();
-			res.lookup_table = this.actionTable;
+			res.lookup_table = this._actionTable;
+			res.lookup_index = this._lookup_index;
 			res.input_length = this.input_length;
 			res.state_length = this.state_length;
+			res.mod_name = CamelCaseTo_snake_case(this.className);
+			res.lexer_mod_name = CamelCaseTo_snake_case(this.lexerName);
 			return res;
 		}
 		
@@ -277,7 +292,21 @@ package org.lala.compilercompile.utils
 		
 		public function get fileName(): String
 		{
-			return this.className + '.rs';
+			return CamelCaseTo_snake_case(this.className) + '.rs';
+		}
+		
+		private static function CamelCaseTo_snake_case(name: String): String
+		{
+			return name.replace(/[A-Z]/g, function(char: String, index: int, str: String): String {
+				if(index != 0)
+				{
+					return '_' + char.toLowerCase();
+				}
+				else 
+				{
+					return char.toLowerCase();
+				}
+			});
 		}
 	}
 }

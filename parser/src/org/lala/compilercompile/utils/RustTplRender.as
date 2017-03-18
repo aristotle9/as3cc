@@ -23,8 +23,8 @@ package org.lala.compilercompile.utils
 
 use self::rustc_serialize::json::Json;
 
-use lexer::RegexLexer;
-use lexer::RegexLexerError;
+use <{ lexer_mod_name }>::<{ lexerName }>;
+use <{ lexer_mod_name }>::<{ lexerName }>Error;
 
 <{ usercode }>
 
@@ -51,11 +51,13 @@ enum Action {
 pub struct Parser {
     prod_list: Vec<ProductionItem>,
     lookup_table: Vec<Action>,
+    lookup_index: Vec<usize>,
 }
 
 impl Parser {
     pub fn new() -> Parser {
         Parser { prod_list: vec![<{ tables }>]
+               , lookup_index: vec![<{ lookup_index }>]
                , lookup_table: vec![<{ lookup_table }>] }
     }
 
@@ -65,10 +67,34 @@ impl Parser {
 		if token >= input_length || state >= state_length {
 			return Action::Error;
 		}
-		return self.lookup_table[token * state_length + state].clone();
+		self.find(token * state_length + state)
     }
 
-    pub fn parse(&self, lexer: &mut RegexLexer) -> Result<Json, RegexLexerError> {
+    fn find(&self, value: usize) -> Action {
+        let mut left: usize = 0;
+        let mut right: usize = self.lookup_index.len();
+        let mut old_mid: usize = 0;
+        loop {
+            let mut mid = (left + right) >> 1;
+            let index_value = self.lookup_index[mid];
+            if index_value == value {
+                return self.lookup_table[mid].clone();
+            } else if index_value > value {
+                right = mid;
+            } else {
+                left = mid;
+            }
+
+            if old_mid == mid {
+                return Action::Error;
+            } else {
+                old_mid = mid;
+            }
+        }
+        Action::Error
+    }
+
+    pub fn parse(&self, lexer: &mut <{ lexerName }>) -> Result<Json, <{ lexerName }>Error> {
 		<{ initial }>
         let mut state_stack: Vec<State> = vec![0];
         let mut output_stack: Vec<Json> = Vec::new();
@@ -80,7 +106,7 @@ impl Parser {
             };
             let state = state_stack[state_stack.len() - 1];
             let action = self.lookup(token, state);
-            //println!("{:?}", ("cur_state", state, "token", RegexLexer::find_token_name(token), token, lexer.get_yytext(), "action", action));
+            //println!("{:?}", ("cur_state", state, "token", <{ lexerName }>::find_token_name(token), token, lexer.get_yytext(), "action", action));
             match action {
                 Action::Accept => {
                     return Ok(output_stack.pop().unwrap());
@@ -126,6 +152,13 @@ impl Parser {
             }
         }
         Ok(Json::Null)
+    }
+
+    pub fn parse_str(source: &str) -> Result<Json, <{ lexerName }>Error> {
+        let mut lexer = <{ lexerName }>::new();
+        lexer.set_source(source);
+        let mut p = Self::new();
+        p.parse(&mut lexer)
     }
 }
 ]]></r>);

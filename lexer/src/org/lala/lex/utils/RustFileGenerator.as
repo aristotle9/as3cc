@@ -190,12 +190,26 @@ package org.lala.lex.utils
 		
 		public function get fileName(): String
 		{
-			return this.className + ".rs";
+			return CamelCaseTo_snake_case(this.className) + ".rs";
 		}
 		
 		public function render(): String
 		{
 			return (new RustTplRender()).render(this.getRenderObject());
+		}
+		
+		private static function CamelCaseTo_snake_case(name: String): String
+		{
+			return name.replace(/[A-Z]/g, function(char: String, index: int, str: String): String {
+				if(index != 0)
+				{
+					return '_' + char.toLowerCase();
+				}
+				else 
+				{
+					return char.toLowerCase();
+				}
+			});
 		}
 	}
 }
