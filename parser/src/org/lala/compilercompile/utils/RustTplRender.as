@@ -48,15 +48,15 @@ enum Action {
 }
 
 #[derive(Debug)]
-pub struct Parser {
+pub struct <{ class }> {
     prod_list: Vec<ProductionItem>,
     lookup_table: Vec<Action>,
     lookup_index: Vec<usize>,
 }
 
-impl Parser {
-    pub fn new() -> Parser {
-        Parser { prod_list: vec![<{ tables }>]
+impl <{ class }> {
+    pub fn new() -> <{ class }> {
+        <{ class }> { prod_list: vec![<{ tables }>]
                , lookup_index: vec![<{ lookup_index }>]
                , lookup_table: vec![<{ lookup_table }>] }
     }
