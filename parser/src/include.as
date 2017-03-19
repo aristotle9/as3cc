@@ -41,3 +41,6 @@ include "org/lala/compilercompile/utils/JavaTplRender.as";
 include "org/lala/compilercompile/utils/RustFileGenerator.as";
 include "org/lala/compilercompile/utils/RustTplRender.as";
 include "org/lala/compilercompile/utils/OutputFileType.as";
+include "org/lala/compilercompile/configs/plugins/JsonToRustLexer.as"
+include "org/lala/compilercompile/configs/plugins/JsonToRustParser.as"
+include "org/lala/compilercompile/configs/plugins/JsonToRust.as"

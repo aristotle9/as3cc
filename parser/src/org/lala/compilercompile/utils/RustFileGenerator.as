@@ -1,5 +1,6 @@
 package org.lala.compilercompile.utils
 {
+	import org.lala.compilercompile.configs.plugins.JsonToRust;
 	import org.lala.compilercompile.interfaces.IConfig;
 	
 	public class RustFileGenerator extends ParserFile
@@ -235,6 +236,8 @@ package org.lala.compilercompile.utils
 				result.push(str);
 			};
 			var i:uint = 1;//第一个扩展跳过
+			var trans_code: Boolean = config.parser.fields.trans_code == "json2rust";
+			var j2r: JsonToRust = null;
 			for each(var rule:Object in config.parser.rules)
 			{
 				for each(var rhs:Object in rule.rhs)
@@ -242,7 +245,14 @@ package org.lala.compilercompile.utils
 					if(rhs.action != null)
 					{
 						p("0x" + i.toString(16).toUpperCase() + " => {");
-						p(String(rhs.action).replace(/\$(\$|\d+)|@(\d+)/g, function(...args):String
+						var action_code: String = rhs.action;
+						if(trans_code)
+						{
+							if(j2r == null)
+								j2r = new JsonToRust();
+							action_code = j2r.trans_code(action_code);
+						}
+						p(action_code.replace(/\$(\$|\d+)|@(\d+)/g, function(...args):String
 						{
 							if(args[1] == "$")
 							{
