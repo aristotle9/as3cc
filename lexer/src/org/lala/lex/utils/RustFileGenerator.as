@@ -153,7 +153,7 @@ package org.lala.lex.utils
 					}).replace(new RegExp("return\\s+\"([^\"]+)\"", "g"), function(...args):String
 					{
 						return "return Ok(" + _inputMap[args[1]] + ") /* " + args[1] + " */ ";
-					}).replace(new RegExp("self.begin\\s*\\(\\s*\"([^\"]+)\"\\s*\\)", "g"), function(...args):String
+					}).replace(new RegExp("(?:self\.)?begin\\s*\\(\\s*\"([^\"]+)\"\\s*\\)", "g"), function(...args):String
 					{
 						return "self.begin(" + asInitialTable[args[1]] + ") /* " + args[1] + " */ ";
 					});
