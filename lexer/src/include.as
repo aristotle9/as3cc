@@ -26,6 +26,8 @@ include "org/lala/lex/utils/JavaFileGenerator.as";
 include "org/lala/lex/utils/JavaTplRender.as";
 include "org/lala/lex/utils/RustFileGenerator.as";
 include "org/lala/lex/utils/RustTplRender.as";
+include "org/lala/lex/utils/TypeScriptFileGenerator.as";
+include "org/lala/lex/utils/TypeScriptTplRender.as";
 include "org/lala/lex/utils/LexerGenerator.as";
 include "org/lala/lex/utils/NFAUtil.as";
 include "org/lala/lex/utils/RegToken.as";

@@ -142,6 +142,12 @@ package org.lala.lex.utils
 				data = rfg.render();
 				fileName = rfg.fileName;
 			}
+			else if(outputType == OutputFileType.TYPESCRIPT)
+			{
+				var tfg: TypeScriptFileGenerator = new TypeScriptFileGenerator(_config, this._stateTrans, this._finalIndices, this._inputTrans, this._statesInputTable);
+				data = tfg.render();
+				fileName = tfg.fileName;
+			}
 			
             return {
 				data: data,
