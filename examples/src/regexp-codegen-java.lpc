@@ -58,8 +58,14 @@
 
 %{
     private LinkedList<Object> codes = new LinkedList<>();
-    private void put(Object args) {
-        codes.add(args);
+    private int dupl_count = 0;
+    private void put(Object args) throws Exception {
+        if (args.equals("dupl")) {
+            dupl_count += 1;
+            if (dupl_count > 100) {
+                throw new Exception("Dupl commands over 100!");
+            }
+        }
     };
     private int _$i = 0;
     private String flags = "";

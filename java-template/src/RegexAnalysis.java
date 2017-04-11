@@ -29,6 +29,7 @@ public class RegexAnalysis {
             total += 1;
             try {
                 long start = System.nanoTime();
+                /// 修改后 parse 不返回 codes 了，要统计需要切回旧版: a3ecbd47197452ec9cbbbf66739f52ca9c8a2cd6
                 LinkedList<Object> code = (LinkedList<Object>)RegexParser.parse(line);
                 long cost = System.nanoTime() - start;
                 int ask_c = count("ask", code);

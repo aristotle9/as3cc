@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Created by as3cc on Fri Dec 9 11:37:30 GMT+0800 2016.
+ * Created by as3cc on Tue Apr 11 19:01:42 GMT+0800 2017.
  */
 public class RegexLexer {
 
@@ -35,7 +35,6 @@ public class RegexLexer {
     public void setToken(String value) {
         _tokenName = value;
     }
-;
 
     public RegexLexer() {
         _transTable = 
@@ -45,7 +44,7 @@ new HashMap<>(33);_finalTable.put(0x4L, 0x0L); _finalTable.put(0x5L, 0x4L); _fin
 ;_inputTable = 
 new RangeItem[] {new RangeItem(0L, 8L, 17L), new RangeItem(9L, 9L, 26L), new RangeItem(10L, 10L, 0L), new RangeItem(11L, 12L, 17L), new RangeItem(13L, 13L, 0L), new RangeItem(14L, 31L, 17L), new RangeItem(32L, 32L, 26L), new RangeItem(33L, 39L, 17L), new RangeItem(40L, 40L, 31L), new RangeItem(41L, 41L, 5L), new RangeItem(42L, 42L, 32L), new RangeItem(43L, 43L, 30L), new RangeItem(44L, 44L, 25L), new RangeItem(45L, 45L, 28L), new RangeItem(46L, 46L, 2L), new RangeItem(47L, 47L, 1L), new RangeItem(48L, 48L, 24L), new RangeItem(49L, 55L, 23L), new RangeItem(56L, 57L, 22L), new RangeItem(58L, 62L, 17L), new RangeItem(63L, 63L, 29L), new RangeItem(64L, 64L, 17L), new RangeItem(65L, 70L, 18L), new RangeItem(71L, 90L, 17L), new RangeItem(91L, 91L, 6L), new RangeItem(92L, 92L, 3L), new RangeItem(93L, 93L, 8L), new RangeItem(94L, 94L, 9L), new RangeItem(95L, 96L, 17L), new RangeItem(97L, 97L, 18L), new RangeItem(98L, 98L, 14L), new RangeItem(99L, 99L, 20L), new RangeItem(100L, 100L, 11L), new RangeItem(101L, 101L, 18L), new RangeItem(102L, 102L, 13L), new RangeItem(103L, 109L, 17L), new RangeItem(110L, 110L, 21L), new RangeItem(111L, 113L, 17L), new RangeItem(114L, 114L, 12L), new RangeItem(115L, 115L, 10L), new RangeItem(116L, 116L, 19L), new RangeItem(117L, 117L, 15L), new RangeItem(118L, 118L, 17L), new RangeItem(119L, 119L, 10L), new RangeItem(120L, 120L, 16L), new RangeItem(121L, 122L, 17L), new RangeItem(123L, 123L, 4L), new RangeItem(124L, 124L, 7L), new RangeItem(125L, 125L, 27L), new RangeItem(126L, 65535L, 17L)}
 ;_initialTable = 
-new HashMap<>(3);_initialTable.put("REPEAT", 0x1L); _initialTable.put("BRACKET", 0x2L); _initialTable.put("INITIAL", 0x3L)
+new HashMap<>(3);_initialTable.put("REPEAT", 0x1L); _initialTable.put("INITIAL", 0x3L); _initialTable.put("BRACKET", 0x2L)
 ;
     }
 

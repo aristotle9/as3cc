@@ -3,7 +3,7 @@ package    org.lala.lex.utils.parser;
 import java.util.*;
 
 /**
- * Created by as3cc on Fri Dec 9 11:37:30 GMT+0800 2016.
+ * Created by as3cc on Tue Apr 11 19:01:42 GMT+0800 2017.
  */
 public class RegexParser {
     private List<Map<Integer, Integer>> _actionTable;
@@ -12,13 +12,18 @@ public class RegexParser {
     private Map<String, Integer> _inputTable;
     
     private LinkedList<Object> codes = new LinkedList<>();
-    private void put(Object args) {
-        codes.add(args);
+    private int dupl_count = 0;
+    private void put(Object args) throws Exception {
+        if (args.equals("dupl")) {
+            dupl_count += 1;
+            if (dupl_count > 100) {
+                throw new Exception("Dupl commands over 100!");
+            }
+        }
     };
     private int _$i = 0;
     private String flags = "";
     private String flags_c = "";
-;
 
     public RegexParser() {
         Map<Integer, Integer> _tmp;
@@ -29,7 +34,7 @@ new HashMap<>(0x6);_tmp = new HashMap<>(2);_tmp.put(0xB, 0x33); _tmp.put(0x3, 0x
 ;_prodList = 
 new ProductionItem[] {new ProductionItem(0x19, 0x2), new ProductionItem(0x13, 0x1), new ProductionItem(0x13, 0x4), new ProductionItem(0x15, 0x2), new ProductionItem(0x15, 0x0), new ProductionItem(0x14, 0x3), new ProductionItem(0x14, 0x3), new ProductionItem(0x14, 0x2), new ProductionItem(0x14, 0x2), new ProductionItem(0x14, 0x2), new ProductionItem(0x14, 0x2), new ProductionItem(0x14, 0x3), new ProductionItem(0x14, 0x4), new ProductionItem(0x14, 0x2), new ProductionItem(0x14, 0x1), new ProductionItem(0x17, 0x3), new ProductionItem(0x17, 0x4), new ProductionItem(0x17, 0x5), new ProductionItem(0x17, 0x4), new ProductionItem(0x18, 0x4), new ProductionItem(0x18, 0x2), new ProductionItem(0x18, 0x1), new ProductionItem(0x18, 0x3), new ProductionItem(0x16, 0x1), new ProductionItem(0x16, 0x1)}
 ;_inputTable = 
-new HashMap<>(18);_inputTable.put("/", 0x2); _inputTable.put("[", 0x9); _inputTable.put("escc", 0x12); _inputTable.put("]", 0xA); _inputTable.put("(", 0x4); _inputTable.put("{", 0xC); _inputTable.put("^", 0xB); _inputTable.put(")", 0x5); _inputTable.put("|", 0x3); _inputTable.put("?", 0x8); _inputTable.put("}", 0xE); _inputTable.put("+", 0x7); _inputTable.put("*", 0x6); _inputTable.put(",", 0xF); _inputTable.put("<$>", 0x1); _inputTable.put("-", 0x11); _inputTable.put("c", 0x10); _inputTable.put("d", 0xD)
+new HashMap<>(18);_inputTable.put("/", 0x2); _inputTable.put("-", 0x11); _inputTable.put("[", 0x9); _inputTable.put("]", 0xA); _inputTable.put("(", 0x4); _inputTable.put("{", 0xC); _inputTable.put("^", 0xB); _inputTable.put(")", 0x5); _inputTable.put("|", 0x3); _inputTable.put("?", 0x8); _inputTable.put("<$>", 0x1); _inputTable.put("escc", 0x12); _inputTable.put("+", 0x7); _inputTable.put("*", 0x6); _inputTable.put(",", 0xF); _inputTable.put("}", 0xE); _inputTable.put("c", 0x10); _inputTable.put("d", 0xD)
 ;
     }
 
@@ -40,8 +45,7 @@ new HashMap<>(18);_inputTable.put("/", 0x2); _inputTable.put("[", 0x9); _inputTa
 
         LinkedList<Object> _outputStack = new LinkedList<>();
         int _act;
-        ;
-
+        
         while (true) {
 
             String _token = lexer.getToken();
@@ -63,7 +67,7 @@ new HashMap<>(18);_inputTable.put("/", 0x2); _inputTable.put("[", 0x9); _inputTa
                 lexer.advance();
             } else if ((_act & 1) == 0) {
                 int _pi = _act >>> 1;
-                int _length = _prodList[_pi].length;
+                int _length = _prodList[_pi].body_length;
                 Object _result = null;
                 /** actions applying **/
                 /** default action **/
@@ -232,7 +236,7 @@ break;
                     _i ++;
                 }
                 _state = _stateStack.peek();
-                _act_obj = _gotoTable.get(_prodList[_pi].id).get(_state);
+                _act_obj = _gotoTable.get(_prodList[_pi].header_id).get(_state);
                 if (_act_obj == null) {
                     throw new Exception("Goto Error!" + lexer.getPositionInfo());
                 } else {
@@ -254,11 +258,11 @@ break;
     }
 
     public static final class ProductionItem {
-        public final int id;
-        public final int length;
-        public ProductionItem(int id, int length) {
-            this.id = id;
-            this.length = length;
+        public final int header_id;
+        public final int body_length;
+        public ProductionItem(int header_id, int body_length) {
+            this.header_id = header_id;
+            this.body_length = body_length;
         }
     }
 }
