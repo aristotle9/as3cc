@@ -22,6 +22,7 @@ package org.lala.compilercompile.lr0automata
     import org.lala.compilercompile.utils.ParserFile;
     import org.lala.compilercompile.utils.RustFileGenerator;
     import org.lala.compilercompile.utils.TplRender;
+    import org.lala.compilercompile.utils.TypeScriptFileGenerator;
     import org.lala.compilercompile.utils.XmlParser;
 
     public class LR0Automata
@@ -509,6 +510,12 @@ package org.lala.compilercompile.lr0automata
 				var rfg: RustFileGenerator = new RustFileGenerator(_srcProvider, twoTables[0], twoTables[1], prds, inputSymbols);
 				data = rfg.render();
 				fileName = rfg.fileName;
+			}
+			else if(outputType == OutputFileType.TYPESCRIPT)
+			{
+				var tfg: TypeScriptFileGenerator = new TypeScriptFileGenerator(_srcProvider, twoTables[0], twoTables[1], prds, inputSymbols);
+				data = tfg.render();
+				fileName = tfg.fileName;
 			}
 			
 			return {

@@ -5,5 +5,6 @@ package org.lala.compilercompile.utils
 		public static const ACTIONSCRIPT3: String = "actionscript3";
 		public static const JAVA: String = "java";
 		public static const RUST: String = "rust";
+		public static const TYPESCRIPT: String = "typescript";
 	}
 }
