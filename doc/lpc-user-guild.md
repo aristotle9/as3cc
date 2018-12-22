@@ -5,7 +5,7 @@ The lpc file is a parser configuration for a language. The as3cc programs use lp
 
 Lpc file consists of two parts: a lexer config part and a parser config part. as3cc-lexer uses the lexer part and as3cc-parser uses the parser part.
 
-This document is guild for writing lpc file. For more detail, please check [the lpc file of lpc language](#../examples/src/lexer_highlight.lpc).
+This document is guild for writing lpc file. For more detail, please check [the lpc file of lpc language](../examples/src/lexer_highlight.lpc).
 
 Table of Contents
 =================
@@ -38,6 +38,9 @@ Table of Contents
     * [Non-associative Command](#non-associative-command)
     * [Start Command](#start-command)
 * [Grammar Rules](#grammar-rules)
+* [Target Code Options](#target-code-options)
+    * [Output Language Type](#output-language-type)
+    * [Trans Code](#trans-code)
 
 Comments
 ========
@@ -155,7 +158,7 @@ Names
 
 Lexer rule pattern is a tiny regular expression language, and it's complied to DFA implemention in target code by as3cc-lexer. Compared to JavaScript Regex, it is lack of named group and back-traking.
 
-For more detail, please check [the lpc file of lexer rule pattern](#../examples/src/regexp-codegen.lpc).
+For more detail, please check [the lpc file of lexer rule pattern](../examples/src/regexp-codegen.lpc).
 
 ## Expression
 
@@ -206,7 +209,7 @@ For more detail, please check [the lpc file of lexer rule pattern](#../examples/
 | `[?]` | `\?` |
 | `[(]` | `\(` |
 | `[)]` | `\)` |
-| `[|]` | `\|` |
+| <code>[&#124;]</code> | <code>\\&#124;</code> |
 | `[[]` | `\[` |
 | `[{]` | `\{` |
 | `[}]` | `\}` |
@@ -313,3 +316,28 @@ Symbol
     | grammar_string
     ;
 ```
+
+Target Code Options
+=======================
+
+## Output Language Type
+
+`%field output_type %{lang%}`
+
+`--output_type lang`
+
+Currently as3cc supports four output languages. By default, as3cc uses AS3 as its output. You can change the output language by a field command named `output_type`. The command line tool's `--output_type lang` option can overwrite the lpc file's output_type filed.
+
+| Language | lang |
+|---|---|
+| ActionScript3 | `actionscript3`(default) |
+| Java | `java` |
+| TypeScript | `typescript` |
+| Rust | `rust` |
+
+## Trans Code
+
+`%field trans_code %{json2rust%}`
+
+When grammar actions was simplely JS like object's constructions and assignments, and target language doesn't supports JS like object literals, you can use trans_code filed command to translate JS like object literals to target language's code. Currently only Rust is supported.
+Please check [examples/src/json2rs.tpl](../examples/src/json2rs.tpl) and [parser/src/org/lala/compilercompile/configs/plugins/JsonToRust.as](../parser/src/org/lala/compilercompile/configs/plugins/JsonToRust.as) for more detail.
